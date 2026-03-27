@@ -7,8 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useHousehold } from '../../hooks/useHousehold';
 import { Button, InputField, Card, AlertBanner } from '../../components/ui';
-import { SPLIT_RULE_LABELS, SPLIT_RULE_DESCRIPTIONS, type SplitRuleType } from '../../lib/constants';
+import { APP_NAME, SPLIT_RULE_LABELS, SPLIT_RULE_DESCRIPTIONS, type SplitRuleType } from '../../lib/constants';
 import { supabase } from '../../lib/supabase';
+import { trackEvent } from '../../lib/analytics';
 import { Home, ArrowRight, ArrowLeft, Users, DollarSign, Scale, Target, CheckCircle, Link as LinkIcon } from 'lucide-react';
 import { validateHouseholdName, validateAmount, validateEmail } from '../../utils/validators';
 import { formatCLP } from '../../utils/format-clp';
@@ -32,7 +33,7 @@ export function OnboardingPage() {
   // Form data
   const [householdName, setHouseholdName] = useState('');
   const [monthlyIncome, setMonthlyIncome] = useState('');
-  const [splitRule, setSplitRule] = useState<SplitRuleType>('fifty_fifty');
+  const [splitRule] = useState<SplitRuleType>('fifty_fifty');
   const [goalName, setGoalName] = useState('');
   const [goalAmount, setGoalAmount] = useState('');
   const [goalDate, setGoalDate] = useState('');
@@ -85,6 +86,7 @@ export function OnboardingPage() {
     try {
       let rpcError: { message?: string } | null = null;
       let invitationTokenId: string | null = null;
+      let newHouseholdId: string | null = null;
 
       // Retry logic for Supabase GoTrue "Lock stolen" race conditions
       for (let i = 0; i < 3; i++) {
@@ -100,6 +102,7 @@ export function OnboardingPage() {
         
         rpcError = error;
         invitationTokenId = data?.invitation_token_id ?? null;
+        newHouseholdId = data?.household_id ?? null;
         
         // If success, or error is NOT a Lock issue, break out of loop
         if (!error || !(error.message && error.message.includes('Lock'))) break;
@@ -111,6 +114,10 @@ export function OnboardingPage() {
       if (rpcError) throw new Error(rpcError.message || 'No pudimos crear el hogar');
 
       await refetch();
+      trackEvent('onboarding_completed', {
+        household_id: newHouseholdId,
+        invited_partner: (!skipInvite && !!partnerEmail) || !!invitationTokenId,
+      });
 
       if (invitationTokenId) {
         const { data: tokenData, error: tokenError } = await supabase
@@ -124,11 +131,11 @@ export function OnboardingPage() {
         }
 
         setInviteLink(`${window.location.origin}/invitacion/${tokenData.token}`);
-        setInviteMessage('Hogar creado. Comparte este enlace con tu pareja.');
+        setInviteMessage('Hogar creado. Ya puedes compartir el enlace o entrar al panel para registrar el primer movimiento.');
         return;
       }
 
-      navigate('/app/suscripcion');
+      navigate('/app/dashboard?welcome=1');
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'No pudimos completar la configuración');
     } finally {
@@ -170,33 +177,36 @@ export function OnboardingPage() {
           {inviteLink ? (
             <div className="space-y-4">
               <p className="text-sm text-text-muted">
-                Comparte este enlace con tu pareja para que acepte la invitación.
+                El hogar ya está listo. Comparte este enlace cuando quieras sumar a tu pareja y luego entra al panel para hacer la primera lectura del mes.
               </p>
               <InputField label="Enlace de invitación" value={inviteLink} onChange={() => {}} readOnly />
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button onClick={copyInviteLink}>
+                <Button onClick={() => navigate('/app/dashboard?welcome=1')}>
+                  Ir al panel <ArrowRight className="h-4 w-4" />
+                </Button>
+                <Button variant="secondary" onClick={copyInviteLink}>
                   <LinkIcon className="h-4 w-4" /> Copiar enlace
                 </Button>
-                <Button variant="secondary" onClick={() => navigate('/app/suscripcion')}>
-                  Continuar a suscripción
+                <Button variant="ghost" onClick={() => navigate('/app/suscripcion')}>
+                  Ver planes
                 </Button>
               </div>
               <p className="text-xs text-text-muted">
-                Si prefieres hacerlo después, el enlace también quedará disponible en Configuración.
+                El siguiente paso útil es registrar el primer movimiento o crear una meta. El enlace también quedará disponible en Configuración.
               </p>
             </div>
           ) : (
             <>
               {step === 0 && (
                 <div className="space-y-4">
-                  <p className="text-sm text-text-muted">Ponle un nombre a tu hogar.</p>
+                  <p className="text-sm text-text-muted">Dale un nombre al espacio compartido que vas a ordenar en {APP_NAME}. Ese será el punto de referencia del hogar dentro de la app.</p>
                   <InputField label="Nombre del hogar" value={householdName} onChange={e => setHouseholdName(e.target.value)} placeholder='Ej: "Hogar Pérez-González"' />
                 </div>
               )}
 
               {step === 1 && (
                 <div className="space-y-4">
-                  <p className="text-sm text-text-muted">Ingresa tu ingreso mensual. Podrás cambiarlo después.</p>
+                  <p className="text-sm text-text-muted">Este ingreso nos da el punto de partida para una primera lectura del mes. Podrás ajustarlo más adelante sin problema.</p>
                   <InputField label="Ingreso mensual (CLP)" type="number" value={monthlyIncome} onChange={e => setMonthlyIncome(e.target.value)} placeholder="Ej: 1200000" />
                   {monthlyIncome && parseInt(monthlyIncome) > 0 && (
                     <p className="text-xs text-text-muted">= {formatCLP(parseInt(monthlyIncome))}</p>
@@ -206,26 +216,21 @@ export function OnboardingPage() {
 
               {step === 2 && (
                 <div className="space-y-4">
-                  <p className="text-sm text-text-muted">¿Cómo quieres repartir los gastos compartidos?</p>
-                  <div className="space-y-3">
-                    {(Object.entries(SPLIT_RULE_LABELS) as [SplitRuleType, string][]).map(([key, label]) => (
-                      <label key={key} className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
-                        splitRule === key ? 'border-primary bg-primary-bg/50' : 'border-border hover:border-primary/30'
-                      }`}>
-                        <input type="radio" name="split" value={key} checked={splitRule === key} onChange={() => setSplitRule(key)} className="mt-1" />
-                        <div>
-                          <p className="font-medium text-text text-sm">{label}</p>
-                          <p className="text-xs text-text-muted">{SPLIT_RULE_DESCRIPTIONS[key]}</p>
-                        </div>
-                      </label>
-                    ))}
+                  <p className="text-sm text-text-muted">Partimos con una regla simple para que el hogar tenga una referencia compartida desde el primer mes.</p>
+                  <div className="rounded-xl border border-border bg-surface p-4">
+                    <p className="font-medium text-text text-sm">{SPLIT_RULE_LABELS[splitRule]}</p>
+                    <p className="text-xs text-text-muted mt-1">{SPLIT_RULE_DESCRIPTIONS[splitRule]}</p>
                   </div>
+                  <AlertBanner
+                    type="info"
+                    message="Las reglas flexibles de reparto se habilitan desde Esencial. Por ahora tu hogar quedará con 50/50."
+                  />
                 </div>
               )}
 
               {step === 3 && (
                 <div className="space-y-4">
-                  <p className="text-sm text-text-muted">Tu primera meta es opcional. Puedes completarla ahora o después.</p>
+                  <p className="text-sm text-text-muted">Tu primera meta es opcional, pero ayuda a que el hogar parta con una dirección concreta y no solo con números sueltos.</p>
                   <InputField label="Nombre de la meta" value={goalName} onChange={e => setGoalName(e.target.value)} placeholder='Ej: "Vacaciones", "Fondo de emergencia"' />
                   <InputField label="Monto objetivo (CLP)" type="number" value={goalAmount} onChange={e => setGoalAmount(e.target.value)} placeholder="Ej: 500000" />
                   <InputField label="Fecha objetivo" type="date" value={goalDate} onChange={e => setGoalDate(e.target.value)} />
@@ -234,7 +239,7 @@ export function OnboardingPage() {
 
               {step === 4 && (
                 <div className="space-y-4">
-                  <p className="text-sm text-text-muted">Si compartes hogar, genera un enlace para tu pareja y compártelo por el medio que prefieras.</p>
+                  <p className="text-sm text-text-muted">Si compartes hogar, genera un enlace para que tu pareja se sume a la misma lectura del mes. Si no lo haces ahora, podrás hacerlo después.</p>
                   {!skipInvite ? (
                     <>
                       <InputField label="Email de tu pareja" type="email" value={partnerEmail} onChange={e => setPartnerEmail(e.target.value)} placeholder="pareja@email.com" />
@@ -258,7 +263,7 @@ export function OnboardingPage() {
                   <ArrowLeft className="h-4 w-4" /> Atrás
                 </Button>
                 <Button onClick={handleNext} loading={loading}>
-                  {step === STEPS.length - 1 ? 'Crear mi hogar' : 'Siguiente'} <ArrowRight className="h-4 w-4" />
+                  {step === STEPS.length - 1 ? 'Entrar al hogar' : 'Siguiente'} <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
             </>

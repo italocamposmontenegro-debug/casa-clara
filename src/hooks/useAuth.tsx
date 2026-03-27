@@ -7,6 +7,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { clearPersistedSupabaseSession, supabase } from '../lib/supabase';
+import { APP_NAME } from '../lib/constants';
 import type { Profile } from '../types/database';
 import {
   isTransientNetworkError,
@@ -86,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error initializing auth state:', error);
         if (!cancelled) {
           if (isTransientNetworkError(error)) {
-            setError('La conexión con Casa Clara está inestable.');
+            setError(`La conexión con ${APP_NAME} está inestable.`);
           } else {
             setError(error instanceof Error ? error.message : 'No pudimos validar tu sesión.');
           }
@@ -295,7 +296,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       return {
         error: isTransientNetworkError(error)
-          ? 'La conexión con Casa Clara tardó demasiado. Reintenta en unos segundos.'
+          ? `La conexión con ${APP_NAME} tardó demasiado. Reintenta en unos segundos.`
           : error instanceof Error
             ? error.message
             : 'No pudimos iniciar sesión.',

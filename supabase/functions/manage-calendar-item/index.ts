@@ -1,5 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { getHouseholdPlanTier } from '../_shared/entitlements.ts';
+import { hasFeature } from '../../../shared/plans.ts';
 
 const supabase = createServiceClient();
 
@@ -52,12 +54,12 @@ async function assertAccess(householdId: string, userId: string) {
   }
 }
 
-async function assertCategory(householdId: string, categoryId: string | null) {
-  if (!categoryId) return;
+async function getCategory(householdId: string, categoryId: string | null) {
+  if (!categoryId) return null;
 
   const { data, error } = await supabase
     .from('categories')
-    .select('id')
+    .select('id, is_default')
     .eq('household_id', householdId)
     .eq('id', categoryId)
     .is('deleted_at', null)
@@ -65,6 +67,16 @@ async function assertCategory(householdId: string, categoryId: string | null) {
 
   if (error || !data) {
     throw new Error('No encontramos la categoria seleccionada.');
+  }
+
+  return data;
+}
+
+async function assertCategoryAllowed(householdId: string, categoryId: string | null, canUseCustomCategories: boolean) {
+  const category = await getCategory(householdId, categoryId);
+  if (!category) return;
+  if (!canUseCustomCategories && !category.is_default) {
+    throw new Error('Las categorías personalizadas están disponibles desde el plan Esencial.');
   }
 }
 
@@ -95,13 +107,54 @@ serve(async (req) => {
 
     const user = await getAuthenticatedUser(authHeader.replace('Bearer ', ''));
     const body = await req.json() as {
-      action?: 'update' | 'delete';
+      action?: 'create' | 'update' | 'delete';
+      householdId?: string;
       itemId?: string;
       description?: unknown;
       amountClp?: unknown;
       dueDate?: unknown;
       categoryId?: string | null;
     };
+
+    if (body.action === 'create') {
+      const householdId = parseRequiredText(body.householdId, 'El hogar');
+      await assertAccess(householdId, user.id);
+
+      const planTier = await getHouseholdPlanTier(supabase, householdId);
+      if (!hasFeature(planTier, 'calendar_full')) {
+        throw new Error('El calendario completo está disponible desde el plan Esencial.');
+      }
+
+      const nextDescription = parseRequiredText(body.description, 'La descripcion');
+      const nextAmount = parseAmount(body.amountClp);
+      const nextDueDate = parseRequiredText(body.dueDate, 'La fecha de vencimiento');
+      const nextCategoryId = body.categoryId ?? null;
+      await assertCategoryAllowed(householdId, nextCategoryId, hasFeature(planTier, 'categories_custom'));
+
+      const { data, error } = await supabase
+        .from('payment_calendar_items')
+        .insert({
+          household_id: householdId,
+          description: nextDescription,
+          amount_clp: nextAmount,
+          due_date: nextDueDate,
+          status: 'pending',
+          category_id: nextCategoryId,
+          recurring_source_id: null,
+          paid_transaction_id: null,
+        })
+        .select('*')
+        .single();
+
+      if (error || !data) {
+        throw error ?? new Error('No pudimos crear el pago programado.');
+      }
+
+      return new Response(JSON.stringify({ item: data }), {
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
 
     if (!body.itemId) throw new Error('Pago programado requerido.');
 
@@ -116,6 +169,11 @@ serve(async (req) => {
     }
 
     await assertAccess(item.household_id, user.id);
+    const planTier = await getHouseholdPlanTier(supabase, item.household_id);
+
+    if (!hasFeature(planTier, 'calendar_full')) {
+      throw new Error('El calendario completo está disponible desde el plan Esencial.');
+    }
 
     if (body.action === 'delete') {
       if (item.recurring_source_id) {
@@ -143,7 +201,7 @@ serve(async (req) => {
     const nextAmount = parseAmount(body.amountClp);
     const nextDueDate = parseRequiredText(body.dueDate, 'La fecha de vencimiento');
     const nextCategoryId = body.categoryId ?? null;
-    await assertCategory(item.household_id, nextCategoryId);
+    await assertCategoryAllowed(item.household_id, nextCategoryId, hasFeature(planTier, 'categories_custom'));
 
     const { data: updatedItem, error: updateError } = await supabase
       .from('payment_calendar_items')

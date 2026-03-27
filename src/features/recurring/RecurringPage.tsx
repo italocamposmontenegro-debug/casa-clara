@@ -244,7 +244,7 @@ export function RecurringPage() {
   } as const;
 
   return (
-    <FeatureGate feature="recurring">
+    <FeatureGate feature="recurring_transactions">
       <div>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-text">Gastos recurrentes</h1>
@@ -267,7 +267,14 @@ export function RecurringPage() {
         )}
 
         {items.length === 0 ? (
-          <EmptyState icon={<Repeat className="h-8 w-8" />} title="Sin recurrencias" description="Agrega gastos que se repiten cada mes." />
+          <EmptyState
+            icon={<Repeat className="h-8 w-8" />}
+            eyebrow="Continuidad del hogar"
+            title="Todavía no hay reglas recurrentes"
+            description="Las recurrencias sirven para que el hogar no tenga que recordar ni registrar desde cero los mismos pagos todos los meses."
+            secondaryText="Empieza por los gastos que siempre vuelven: arriendo, colegio, suscripciones o cuentas fijas."
+            action={canWrite ? { label: 'Crear recurrencia', onClick: openCreateModal } : undefined}
+          />
         ) : (
           <div className="space-y-3">
             {items.map(item => {

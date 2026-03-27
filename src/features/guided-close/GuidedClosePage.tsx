@@ -5,12 +5,14 @@ import { ClipboardCheck, CheckCircle, ArrowRight, Wallet, PieChart } from 'lucid
 import { supabase } from '../../lib/supabase';
 import { useHousehold } from '../../hooks/useHousehold';
 import { useAuth } from '../../hooks/useAuth';
+import { useSubscription } from '../../hooks/useSubscription';
 import { formatCLP } from '../../utils/format-clp';
 import { startOfMonth, endOfMonth } from 'date-fns';
 
 export function GuidedClosePage() {
   const { household } = useHousehold();
   const { user } = useAuth();
+  const { hasFeature } = useSubscription();
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1);
   const [totals, setTotals] = useState({ income: 0, expenses: 0, balance: 0 });
@@ -52,23 +54,22 @@ export function GuidedClosePage() {
     setMsg('');
     
     const now = new Date();
-    const { error } = await supabase.from('monthly_reviews').upsert({
-      household_id: household.id,
-      year: now.getFullYear(),
-      month: now.getMonth() + 1,
-      total_income: totals.income,
-      total_expenses: totals.expenses,
-      total_savings: Math.max(0, totals.balance),
-      created_by: user.id,
-      summary_data: { balance: totals.balance }
-    }, {
-      onConflict: 'household_id,year,month',
+    const { error } = await supabase.functions.invoke('save-monthly-review', {
+      body: {
+        householdId: household.id,
+        year: now.getFullYear(),
+        month: now.getMonth() + 1,
+        totalIncome: totals.income,
+        totalExpenses: totals.expenses,
+        totalSavings: Math.max(0, totals.balance),
+        summaryData: { balance: totals.balance },
+      },
     });
 
     if (!error) {
       setFinished(true);
     } else {
-      setMsg('No pudimos guardar el cierre de este mes.');
+      setMsg(error.message || 'No pudimos guardar el cierre de este mes.');
     }
     setSaving(false);
   };
@@ -91,10 +92,18 @@ export function GuidedClosePage() {
   }
 
   return (
-    <FeatureGate feature="guided_close">
+    <FeatureGate feature="monthly_close_simple">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-2xl font-bold text-text mb-6">Cierre mensual guiado</h1>
         {msg && <div className="mb-4"><AlertBanner type="danger" message={msg} onClose={() => setMsg('')} /></div>}
+        {hasFeature('guided_close_advanced') && (
+          <div className="mb-4">
+            <AlertBanner
+              type="info"
+              message="Tu plan Estratégico incluye cierre guiado avanzado. Usa este cierre para dejar guardada una foto clara del mes."
+            />
+          </div>
+        )}
         
         {step === 1 && (
           <div className="space-y-6">

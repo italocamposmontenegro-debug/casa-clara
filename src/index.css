@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 /* ============================================
@@ -6,24 +6,24 @@
    ============================================ */
 
 @theme {
-  --color-bg: #FAFBFC;
-  --color-surface: #FFFFFF;
-  --color-surface-hover: #F9FAFB;
-  --color-border: #E5E7EB;
-  --color-border-light: #F3F4F6;
+  --color-bg: #F9F7F2;
+  --color-surface: #FFFDF8;
+  --color-surface-hover: #F5EEE4;
+  --color-border: #E6DDD0;
+  --color-border-light: #EFE6DB;
 
-  --color-text: #111827;
-  --color-text-secondary: #374151;
-  --color-text-muted: #6B7280;
-  --color-text-light: #9CA3AF;
+  --color-text: #17393F;
+  --color-text-secondary: #2A4C52;
+  --color-text-muted: #68797D;
+  --color-text-light: #99A5A7;
 
-  --color-primary: #1B4332;
-  --color-primary-light: #2D6A4F;
-  --color-primary-lighter: #40916C;
-  --color-primary-bg: #D8F3DC;
+  --color-primary: #17393F;
+  --color-primary-light: #28545D;
+  --color-primary-lighter: #4D6F75;
+  --color-primary-bg: #E8EFED;
 
-  --color-accent: #40916C;
-  --color-accent-light: #52B788;
+  --color-accent: #B48A52;
+  --color-accent-light: #CDA774;
 
   --color-success: #059669;
   --color-success-bg: #ECFDF5;
@@ -34,7 +34,46 @@
   --color-info: #2563EB;
   --color-info-bg: #EFF6FF;
 
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Manrope', system-ui, -apple-system, sans-serif;
+  /* Stitch M3 Theme variables */
+  --color-m3-background: #fcf9f3;
+  --color-m3-surface: #fcf9f3;
+  --color-m3-surface-bright: #fcf9f3;
+  --color-m3-surface-dim: #dcdad4;
+  --color-m3-surface-container-lowest: #ffffff;
+  --color-m3-surface-container-low: #f6f3ed;
+  --color-m3-surface-container: #f0eee8;
+  --color-m3-surface-container-high: #ebe8e2;
+  --color-m3-surface-container-highest: #e5e2dc;
+  
+  --color-m3-on-surface: #1c1c18;
+  --color-m3-on-surface-variant: #404849;
+  --color-m3-on-background: #1c1c18;
+  --color-m3-outline: #707979;
+  --color-m3-outline-variant: #c0c8c9;
+
+  --color-m3-primary: #14454a;
+  --color-m3-on-primary: #ffffff;
+  --color-m3-primary-container: #2f5d62;
+  --color-m3-on-primary-container: #a5d4da;
+
+  --color-m3-secondary: #6e5c39;
+  --color-m3-on-secondary: #ffffff;
+  --color-m3-secondary-container: #f9dfb3;
+  --color-m3-on-secondary-container: #75623f;
+
+  --color-m3-tertiary: #344147;
+  --color-m3-on-tertiary: #ffffff;
+  --color-m3-tertiary-container: #4b585f;
+
+  --color-m3-error: #ba1a1a;
+  --color-m3-on-error: #ffffff;
+  --color-m3-error-container: #ffdad6;
+  --color-m3-on-error-container: #93000a;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-headline: 'Newsreader', Georgia, serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
 
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -64,7 +103,11 @@ html {
 }
 
 body {
-  background-color: var(--color-bg);
+  background:
+    radial-gradient(circle at top left, rgba(180, 138, 82, 0.10), transparent 28%),
+    radial-gradient(circle at 88% 10%, rgba(23, 57, 63, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), transparent 24%),
+    linear-gradient(180deg, #fdfbf7 0%, var(--color-bg) 52%, #f4ede3 100%);
   color: var(--color-text);
   line-height: 1.6;
   min-height: 100vh;
@@ -96,11 +139,72 @@ body {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
-  box-shadow: var(--shadow-xs);
-  transition: box-shadow 0.2s ease;
+  box-shadow: 0 16px 36px rgba(23, 57, 63, 0.05);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 .card:hover {
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 24px 42px rgba(23, 57, 63, 0.08);
+}
+
+.display-heading {
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+}
+
+.surface-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.surface-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(125deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.58) 18%, transparent 48%),
+    radial-gradient(circle at top right, rgba(180, 138, 82, 0.10), transparent 30%);
+  pointer-events: none;
+}
+
+.paper-panel {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 253, 248, 0.98)),
+    linear-gradient(135deg, rgba(180, 138, 82, 0.06), transparent 42%);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 22px 54px rgba(23, 57, 63, 0.06);
+}
+
+.paper-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.30), transparent 28%),
+    linear-gradient(180deg, transparent, rgba(180, 138, 82, 0.04));
+  pointer-events: none;
+}
+
+.editorial-divider {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(23, 57, 63, 0.16), transparent);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 1px solid rgba(23, 59, 69, 0.1);
+  background: rgba(255, 253, 249, 0.85);
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .badge {

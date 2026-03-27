@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { assertHouseholdFeature } from '../_shared/entitlements.ts';
 
 const supabase = createServiceClient();
 
@@ -58,6 +59,8 @@ serve(async (req) => {
     if (actorMemberError || !actorMember) {
       throw new Error('No tienes acceso a este hogar.');
     }
+
+    await assertHouseholdFeature(supabase, householdId, 'recurring_transactions');
 
     const { year, month, day } = getChileDateParts();
     const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();

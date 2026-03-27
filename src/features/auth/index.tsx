@@ -6,23 +6,68 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Button, InputField, AlertBanner } from '../../components/ui';
+import { APP_NAME, APP_TAGLINE } from '../../lib/constants';
+import { trackEvent } from '../../lib/analytics';
 import { validateEmail, validatePassword, validateRequired } from '../../utils/validators';
-import { Home, ArrowLeft } from 'lucide-react';
+import { Home, ArrowLeft, Sparkles, Shield, Users } from 'lucide-react';
 
 function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-bg flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-            <Home className="h-5 w-5 text-white" />
+    <div className="min-h-screen bg-bg px-4 py-8 lg:px-6 lg:py-10">
+      <div className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-stretch">
+        <div className="paper-panel hidden rounded-[2.2rem] px-8 py-8 lg:flex lg:flex-col lg:justify-between">
+          <div>
+            <div className="eyebrow">
+              <Sparkles className="h-4 w-4" />
+              Claridad compartida para el hogar
+            </div>
+            <div className="mt-8 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-white shadow-sm">
+                <Home className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-text">{APP_NAME}</p>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-text-light">Sistema de claridad compartida</p>
+              </div>
+            </div>
+            <h1 className="display-heading mt-8 text-5xl leading-[0.98] text-text">
+              Una entrada serena a la vida cotidiana del hogar.
+            </h1>
+            <p className="mt-5 max-w-md text-base leading-7 text-text-muted">
+              {APP_TAGLINE}
+            </p>
           </div>
-          <span className="text-xl font-bold text-text">Casa Clara</span>
+
+          <div className="space-y-4">
+            <AuthSignal icon={<Users className="h-4 w-4" />} title="Mismo hogar, misma lectura" description="Cada persona ve el mismo mes, con menos espacio para confusiones y supuestos." />
+            <AuthSignal icon={<Shield className="h-4 w-4" />} title="Orden antes que fricción" description="Empieza con una base clara y suma más visión solo cuando el hogar realmente lo necesite." />
+          </div>
         </div>
-        <div className="bg-surface border border-border rounded-2xl p-8 shadow-sm">
-          {children}
+
+        <div className="w-full max-w-md lg:max-w-none lg:self-center lg:justify-self-end">
+          <div className="flex items-center justify-center gap-2.5 mb-8 lg:hidden">
+            <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
+              <Home className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-text">{APP_NAME}</span>
+          </div>
+          <div className="paper-panel rounded-[2rem] p-8">
+            {children}
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function AuthSignal({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+  return (
+    <div className="rounded-[1.5rem] border border-border bg-white/72 px-4 py-4 shadow-xs">
+      <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary-bg text-primary">
+        {icon}
+      </div>
+      <p className="mt-3 text-sm font-semibold text-text">{title}</p>
+      <p className="mt-1 text-sm leading-6 text-text-muted">{description}</p>
     </div>
   );
 }
@@ -67,7 +112,7 @@ export function LoginPage() {
   return (
     <AuthLayout>
       <h2 className="text-xl font-bold text-text mb-2">Inicia sesión</h2>
-      <p className="text-sm text-text-muted mb-6">Ingresa a tu cuenta.</p>
+      <p className="text-sm text-text-muted mb-6">Entra al espacio donde tu hogar ordena acuerdos, pagos y metas.</p>
 
       {error && <div className="mb-4"><AlertBanner type="danger" message={error} /></div>}
 
@@ -119,6 +164,7 @@ export function RegisterPage() {
     const pwCheck = validatePassword(password);
     if (!pwCheck.valid) return setError(pwCheck.error!);
 
+    trackEvent('signup_started', { source: 'register-page', redirect: redirectTarget });
     setLoading(true);
     try {
       const { error: authError, needsEmailConfirmation } = await signUp(email, password, fullName);
@@ -126,8 +172,10 @@ export function RegisterPage() {
       if (authError) {
         setError(authError);
       } else if (needsEmailConfirmation) {
+        trackEvent('signup_completed', { source: 'register-page', confirmation_required: true });
         setSuccess(true);
       } else {
+        trackEvent('signup_completed', { source: 'register-page', confirmation_required: false });
         navigate(redirectTarget);
       }
     } finally {
@@ -144,7 +192,7 @@ export function RegisterPage() {
           </div>
           <h2 className="text-xl font-bold text-text mb-2">Revisa tu correo</h2>
           <p className="text-sm text-text-muted mb-6">
-            Te enviamos un enlace de verificación a <strong>{email}</strong>.
+            Te enviamos un enlace de verificación a <strong>{email}</strong> para activar tu acceso y empezar a ordenar el hogar en {APP_NAME}.
           </p>
           <Link to={`/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`} className="text-primary text-sm font-medium hover:text-primary-light">
             Ir a iniciar sesión
@@ -157,7 +205,7 @@ export function RegisterPage() {
   return (
     <AuthLayout>
       <h2 className="text-xl font-bold text-text mb-2">Crea tu cuenta</h2>
-      <p className="text-sm text-text-muted mb-6">Crea tu acceso a Casa Clara.</p>
+      <p className="text-sm text-text-muted mb-6">Crea el espacio compartido desde donde el hogar puede ordenarse con más claridad.</p>
 
       {error && <div className="mb-4"><AlertBanner type="danger" message={error} /></div>}
 
@@ -215,13 +263,13 @@ export function ForgotPasswordPage() {
         <div className="text-center">
           <h2 className="text-xl font-bold text-text mb-2">Revisa tu correo</h2>
           <p className="text-sm text-text-muted">
-            Si existe una cuenta con <strong>{email}</strong>, recibirás un enlace para restablecer tu contraseña.
+            Si existe una cuenta con <strong>{email}</strong>, recibirás un enlace para recuperar tu acceso sin perder la referencia de tu hogar.
           </p>
         </div>
       ) : (
         <>
           <h2 className="text-xl font-bold text-text mb-2">Recuperar contraseña</h2>
-          <p className="text-sm text-text-muted mb-6">Te enviaremos un enlace para cambiar tu contraseña.</p>
+          <p className="text-sm text-text-muted mb-6">Te enviaremos un enlace para recuperar tu acceso sin perder la referencia de tu hogar.</p>
 
           {error && <div className="mb-4"><AlertBanner type="danger" message={error} /></div>}
 
@@ -268,7 +316,7 @@ export function ResetPasswordPage() {
   return (
     <AuthLayout>
       <h2 className="text-xl font-bold text-text mb-2">Nueva contraseña</h2>
-      <p className="text-sm text-text-muted mb-6">Define tu nueva contraseña.</p>
+      <p className="text-sm text-text-muted mb-6">Define una nueva contraseña para volver a entrar con seguridad.</p>
 
       {error && <div className="mb-4"><AlertBanner type="danger" message={error} /></div>}
 
@@ -298,7 +346,7 @@ export function VerifyEmailPage() {
         </div>
         <h2 className="text-xl font-bold text-text mb-2">Correo verificado</h2>
         <p className="text-sm text-text-muted mb-6">
-          Tu cuenta ya está lista. Ahora puedes iniciar sesión.
+          Tu cuenta ya está lista. Ahora puedes entrar a {APP_NAME} y empezar a conducir el hogar con más claridad.
         </p>
         <Button onClick={() => navigate(redirectTarget)}>Iniciar sesión</Button>
       </div>

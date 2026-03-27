@@ -3,8 +3,10 @@
 // ============================================
 
 import { useEffect, useState, type ReactNode, type ButtonHTMLAttributes, type InputHTMLAttributes } from 'react';
-import { Loader2, X, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Loader2, X, AlertTriangle, CheckCircle, Info, Lock, ArrowRight } from 'lucide-react';
+import { APP_NAME } from '../../lib/constants';
 import { clearPersistedSupabaseSession } from '../../lib/supabase';
+import { trackEvent, trackOnce } from '../../lib/analytics';
 
 // ============================================
 // Button
@@ -249,12 +251,18 @@ export function LoadingPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg">
-      <div className="text-center">
-        <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-        <p className="text-text-muted text-sm">Cargando Casa Clara...</p>
+      <div className="surface-glow w-full max-w-lg rounded-[2rem] border border-border bg-surface px-8 py-10 text-center shadow-sm">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-primary-bg text-primary">
+          <Loader2 className="h-7 w-7 animate-spin" />
+        </div>
+        <p className="mt-6 text-[11px] uppercase tracking-[0.18em] text-text-light">Cargando</p>
+        <h2 className="display-heading mt-3 text-3xl text-text">{APP_NAME} está preparando tu hogar</h2>
+        <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-text-muted">
+          Estamos recuperando tu sesion, tu hogar y el estado del mes para que vuelvas al punto correcto.
+        </p>
         {stalled && (
           <div className="mt-4 space-y-3">
-            <p className="text-xs text-text-muted max-w-xs">
+            <p className="text-xs text-text-muted max-w-xs mx-auto">
               La carga tardó más de lo normal. Puedes reintentar sin cerrar la ventana.
             </p>
             <div className="flex items-center justify-center gap-3">
@@ -280,8 +288,10 @@ export function LoadingPage() {
 // ============================================
 interface EmptyStateProps {
   icon?: ReactNode;
+  eyebrow?: string;
   title: string;
   description: string;
+  secondaryText?: string;
   action?: { label: string; onClick: () => void };
 }
 
@@ -295,12 +305,13 @@ interface BlockingStatePageProps {
 export function BlockingStatePage({ title, description, primaryAction, secondaryAction }: BlockingStatePageProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg p-4">
-      <div className="max-w-md w-full bg-surface border border-border rounded-2xl p-8 text-center shadow-sm">
-        <div className="h-12 w-12 rounded-full bg-warning-bg flex items-center justify-center mx-auto mb-4">
+      <div className="surface-glow max-w-lg w-full bg-surface border border-border rounded-[2rem] p-8 text-center shadow-sm">
+        <div className="h-14 w-14 rounded-3xl bg-warning-bg flex items-center justify-center mx-auto mb-5">
           <AlertTriangle className="h-6 w-6 text-warning" />
         </div>
-        <h2 className="text-xl font-bold text-text mb-2">{title}</h2>
-        <p className="text-sm text-text-muted mb-6">{description}</p>
+        <p className="text-[11px] uppercase tracking-[0.18em] text-text-light">Estado bloqueado</p>
+        <h2 className="display-heading text-3xl text-text mt-3 mb-3">{title}</h2>
+        <p className="text-sm text-text-muted mb-6 leading-6">{description}</p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           {primaryAction && (
             <Button onClick={primaryAction.onClick}>
@@ -318,12 +329,14 @@ export function BlockingStatePage({ title, description, primaryAction, secondary
   );
 }
 
-export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
+export function EmptyState({ icon, eyebrow, title, description, secondaryText, action }: EmptyStateProps) {
   return (
     <div className="text-center py-12">
       {icon && <div className="flex justify-center mb-4 text-text-light">{icon}</div>}
+      {eyebrow && <p className="text-[11px] uppercase tracking-[0.18em] text-text-light mb-3">{eyebrow}</p>}
       <h3 className="text-lg font-semibold text-text mb-2">{title}</h3>
       <p className="text-sm text-text-muted mb-6 max-w-md mx-auto">{description}</p>
+      {secondaryText && <p className="text-xs text-text-light mb-6 max-w-sm mx-auto">{secondaryText}</p>}
       {action && (
         <Button variant="primary" onClick={action.onClick}>
           {action.label}
@@ -395,12 +408,86 @@ export function RestrictedBanner({ message, actionLabel, onAction }: {
   onAction: () => void;
 }) {
   return (
-    <div className="bg-warning-bg border border-warning/20 rounded-xl p-6 text-center">
-      <AlertTriangle className="h-8 w-8 text-warning mx-auto mb-3" />
-      <p className="text-sm text-warning font-medium mb-4">{message}</p>
+    <div className="surface-glow bg-linear-to-br from-warning-bg to-surface border border-warning/20 rounded-[1.6rem] p-6 text-center shadow-sm">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-3xl bg-warning-bg">
+        <AlertTriangle className="h-6 w-6 text-warning" />
+      </div>
+      <p className="mt-4 text-[11px] uppercase tracking-[0.18em] text-warning">Funcion restringida</p>
+      <p className="mt-3 text-sm text-warning font-medium mb-4">{message}</p>
       <Button variant="primary" size="sm" onClick={onAction}>
         {actionLabel}
       </Button>
+    </div>
+  );
+}
+
+export function PlanBadge({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-full bg-primary-bg px-3 py-1 text-xs font-semibold text-primary">
+      {children}
+    </span>
+  );
+}
+
+export function UpgradePromptCard({
+  badge,
+  title,
+  description,
+  highlights = [],
+  actionLabel,
+  onAction,
+  compact = false,
+  trackingContext,
+}: {
+  badge: string;
+  title: string;
+  description: string;
+  highlights?: string[];
+  actionLabel: string;
+  onAction: () => void;
+  compact?: boolean;
+  trackingContext?: string;
+}) {
+  function handleAction() {
+    trackEvent('upgrade_cta_clicked', {
+      context: trackingContext || title,
+      badge,
+      action_label: actionLabel,
+    });
+    onAction();
+  }
+
+  return (
+    <div className={`rounded-2xl border border-primary/20 bg-linear-to-br from-primary-bg/70 to-surface ${compact ? 'p-5' : 'p-6'} shadow-sm`}>
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <PlanBadge>{badge}</PlanBadge>
+          <div className="mt-3 flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white">
+              <Lock className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className={`${compact ? 'text-base' : 'text-lg'} font-bold text-text`}>{title}</h3>
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-text-muted max-w-xl">{description}</p>
+          {highlights.length > 0 && (
+            <ul className="mt-4 space-y-2">
+              {highlights.map((item) => (
+                <li key={item} className="flex items-start gap-2 text-sm text-text-secondary">
+                  <CheckCircle className="h-4 w-4 shrink-0 text-success mt-0.5" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="shrink-0 lg:self-center">
+          <Button onClick={handleAction} size={compact ? 'sm' : 'md'}>
+            {actionLabel} <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -442,22 +529,38 @@ export function Tabs({ tabs, activeTab, onChange }: {
 // ============================================
 import { useSubscription } from '../../hooks/useSubscription';
 import { useNavigate } from 'react-router-dom';
-import type { Feature } from '../../lib/constants';
+import type { FeatureKey } from '../../lib/constants';
 
 export function FeatureGate({ feature, children, fallback }: {
-  feature: Feature;
+  feature: FeatureKey;
   children: ReactNode;
   fallback?: ReactNode;
 }) {
-  const { hasFeature } = useSubscription();
+  const { hasFeature, getUpgradeCopy, planTier } = useSubscription();
   const navigate = useNavigate();
+  const isAllowed = hasFeature(feature);
 
-  if (!hasFeature(feature)) {
+  useEffect(() => {
+    if (isAllowed) return;
+    trackOnce(
+      `limit-reached:${planTier}:${feature}`,
+      'limit_reached_viewed',
+      { feature, plan: planTier, route: window.location.pathname },
+      'session',
+    );
+  }, [feature, isAllowed, planTier]);
+
+  if (!isAllowed) {
+    const upgrade = getUpgradeCopy(feature);
     return fallback ?? (
-      <RestrictedBanner
-        message="Esta función requiere un plan superior."
-        actionLabel="Ver planes"
-        onAction={() => navigate('/app/suscripcion')}
+      <UpgradePromptCard
+        badge={upgrade.badge || 'Disponible con un plan superior'}
+        title={upgrade.title || 'Función bloqueada'}
+        description={upgrade.description || upgrade.message || 'Esta función no está disponible con tu plan actual.'}
+        highlights={upgrade.highlights || []}
+        actionLabel={upgrade.actionLabel || 'Ver planes'}
+        onAction={() => navigate(upgrade.route || '/app/suscripcion')}
+        trackingContext={`feature-gate-${feature}`}
       />
     );
   }

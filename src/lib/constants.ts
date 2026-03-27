@@ -2,151 +2,45 @@
 // Casa Clara — Constantes del sistema
 // ============================================
 
-export const APP_NAME = 'Casa Clara';
-export const APP_TAGLINE = 'Ordena el dinero de tu hogar sin pelear ni depender de Excel.';
+import type { SubscriptionStatus } from './plans';
+
+export const APP_NAME = 'Compás Hogar';
+export const APP_TAGLINE = 'Claridad compartida para conducir el hogar.';
 export const CURRENCY = 'CLP';
 export const TIMEZONE = 'America/Santiago';
 export const LOCALE = 'es-CL';
 export const MAX_HOUSEHOLD_MEMBERS = 2;
-
-// ============================================
-// Planes y precios
-// ============================================
-export type PlanCode = 'base' | 'plus' | 'admin';
-export type BillingCycle = 'monthly' | 'yearly';
-
-export interface PlanInfo {
-  code: PlanCode;
-  name: string;
-  description: string;
-  features: string[];
-  prices: {
-    monthly: number;
-    yearly: number;
-  };
-  savings: {
-    yearly: number; // ahorro anual vs mensual x 12
-  };
-}
-
-export const PLANS: Record<'base' | 'plus', PlanInfo> = {
-  base: {
-    code: 'base',
-    name: 'Esencial',
-    description: 'Ordena el presente de tu hogar y recupera el control del mes.',
-    features: [
-      'Panel general del hogar',
-      'Ingresos y gastos manuales',
-      'Categorías básicas',
-      'Cuentas personales y compartidas',
-      'Notas en movimientos',
-      'Calendario de pagos',
-      'Meta de ahorro simple',
-      'Resumen mensual',
-      'Acceso compartido para la pareja',
-    ],
-    prices: {
-      monthly: 2990,
-      yearly: 29900,
-    },
-    savings: {
-      yearly: 5980, // (2990 * 12) - 29900
-    },
-  },
-  plus: {
-    code: 'plus',
-    name: 'Estratégico',
-    description: 'Usa tus datos para anticiparte, optimizar y decidir mejor en pareja.',
-    features: [
-      'Todo lo de Esencial',
-      'Indicador de salud financiera',
-      'Proyección de cierre mensual',
-      'Múltiples metas de ahorro',
-      'Alertas financieras útiles',
-      'Recomendaciones accionables',
-      'Importación CSV',
-      'Registros recurrentes',
-      'Comparación mensual',
-      'Cierre mensual guiado',
-    ],
-    prices: {
-      monthly: 4990,
-      yearly: 49900,
-    },
-    savings: {
-      yearly: 9980, // (4990 * 12) - 49900
-    },
-  },
-};
-
-// ============================================
-// Features y Feature Gating
-// ============================================
-export type Feature =
-  | 'dashboard'
-  | 'transactions'
-  | 'categories'
-  | 'split'
-  | 'calendar'
-  | 'goals'
-  | 'monthly_review'
-  | 'financial_health'
-  | 'monthly_projection'
-  | 'multiple_goals'
-  | 'smart_alerts'
-  | 'recommendations'
-  | 'csv_import'
-  | 'recurring'
-  | 'comparison'
-  | 'guided_close'
-  | 'admin';
-
-export const BASE_FEATURES: Feature[] = [
-  'dashboard',
-  'transactions',
-  'categories',
-  'split',
-  'calendar',
-  'goals',
-  'monthly_review',
-];
-
-export const PLUS_FEATURES: Feature[] = [
-  ...BASE_FEATURES,
-  'financial_health',
-  'monthly_projection',
-  'multiple_goals',
-  'smart_alerts',
-  'recommendations',
-  'csv_import',
-  'recurring',
-  'comparison',
-  'guided_close',
-];
-
-export const ADMIN_FEATURES: Feature[] = [
-  ...PLUS_FEATURES,
-  'admin',
-];
-
-export function getAccessibleFeatures(planCode: PlanCode | null): Feature[] {
-  switch (planCode) {
-    case 'admin': return ADMIN_FEATURES;
-    case 'plus': return PLUS_FEATURES;
-    case 'base': return BASE_FEATURES;
-    default: return [];
-  }
-}
-
-export function hasFeatureAccess(planCode: PlanCode | null, feature: Feature): boolean {
-  return getAccessibleFeatures(planCode).includes(feature);
-}
+export {
+  PUBLIC_PLAN_INFO,
+  PLAN_FEATURES,
+  PLAN_LIMITS,
+  PLAN_TIER_ORDER,
+  canCreateGoal,
+  getFeatureRequiredPlan,
+  getFeatureUpgradeCopy,
+  getPlanCapabilities,
+  getPlanDescription,
+  getPlanMaxGoals,
+  getPlanMaxMembers,
+  getPlanName,
+  getPlanPromise,
+  getPlanRank,
+  getUpgradePlanForFeature,
+  hasFeature,
+  isPlanAtLeast,
+  mapBillingPlanCodeToTier,
+  resolvePlanTier,
+  type BillingCycle,
+  type BillingPlanCode,
+  type FeatureKey,
+  type PlanTier,
+  type PublicPlanInfo,
+  type SubscriptionStatus,
+} from './plans';
 
 // ============================================
 // Estados de suscripción
 // ============================================
-export type SubscriptionStatus = 'active' | 'pending' | 'cancelled' | 'expired' | 'failed' | 'inactive';
-
 export const SUBSCRIPTION_STATUS_LABELS: Record<SubscriptionStatus, string> = {
   active: 'Activa',
   pending: 'Pendiente',
@@ -174,7 +68,7 @@ export function getSubscriptionCTA(status: SubscriptionStatus | null): Subscript
       };
     case 'cancelled':
       return {
-        message: 'Tu suscripción fue cancelada. Reactiva tu plan para seguir usando Casa Clara.',
+        message: `Tu suscripción fue cancelada. Reactiva tu plan para seguir usando ${APP_NAME}.`,
         action: 'Reactivar plan',
         route: '/app/suscripcion',
       };
@@ -192,7 +86,7 @@ export function getSubscriptionCTA(status: SubscriptionStatus | null): Subscript
       };
     case 'inactive':
       return {
-        message: 'Tu suscripción está inactiva. Contrata un plan para usar Casa Clara.',
+        message: `Tu suscripción está inactiva. Contrata un plan para usar ${APP_NAME}.`,
         action: 'Contratar plan',
         route: '/app/suscripcion',
       };

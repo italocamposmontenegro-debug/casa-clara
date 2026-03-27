@@ -1,5 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { getHouseholdPlanTier } from '../_shared/entitlements.ts';
+import { hasFeature } from '../../../shared/plans.ts';
 
 const supabase = createServiceClient();
 
@@ -35,6 +37,32 @@ function getTodayChile() {
     month: '2-digit',
     day: '2-digit',
   }).format(new Date());
+}
+
+async function getCategory(householdId: string, categoryId: string | null) {
+  if (!categoryId) return null;
+
+  const { data, error } = await supabase
+    .from('categories')
+    .select('id, is_default')
+    .eq('household_id', householdId)
+    .eq('id', categoryId)
+    .is('deleted_at', null)
+    .maybeSingle();
+
+  if (error || !data) {
+    throw new Error('No encontramos la categoría seleccionada.');
+  }
+
+  return data;
+}
+
+async function assertCategoryAllowed(householdId: string, categoryId: string | null, canUseCustomCategories: boolean) {
+  const category = await getCategory(householdId, categoryId);
+  if (!category) return;
+  if (!canUseCustomCategories && !category.is_default) {
+    throw new Error('Las categorías personalizadas están disponibles desde el plan Esencial.');
+  }
 }
 
 serve(async (req) => {
@@ -99,6 +127,10 @@ serve(async (req) => {
       throw new Error('No tienes acceso a este hogar.');
     }
 
+    const planTier = await getHouseholdPlanTier(supabase, item.household_id);
+    const canUseSplitManual = hasFeature(planTier, 'split_manual');
+    const canUseCustomCategories = hasFeature(planTier, 'categories_custom');
+
     if (resolvedAction === 'undo') {
       if (item.status !== 'paid') {
         throw new Error('Ese pago no está marcado como pagado.');
@@ -134,11 +166,12 @@ serve(async (req) => {
       });
     }
 
+    const effectivePaidByMemberId = canUseSplitManual ? paidByMemberId! : actorMember.id;
     const { data: paidByMember, error: paidByMemberError } = await supabase
       .from('household_members')
       .select('id')
       .eq('household_id', item.household_id)
-      .eq('id', paidByMemberId)
+      .eq('id', effectivePaidByMemberId)
       .eq('invitation_status', 'accepted')
       .maybeSingle();
 
@@ -158,6 +191,11 @@ serve(async (req) => {
     }
 
     const finalCategoryId = categoryId ?? item.category_id ?? null;
+    await assertCategoryAllowed(item.household_id, finalCategoryId, canUseCustomCategories);
+    const finalScope = canUseSplitManual ? parseScope(scope) : 'shared';
+    const finalExpenseType = canUseSplitManual
+      ? parseExpenseType(expenseType)
+      : (item.recurring_source_id ? 'fixed' : 'variable');
 
     const { data: transaction, error: transactionError } = await supabase
       .from('transactions')
@@ -165,14 +203,14 @@ serve(async (req) => {
         household_id: item.household_id,
         created_by: user.id,
         type: 'expense',
-        paid_by_member_id: paidByMemberId,
-        scope: parseScope(scope),
+        paid_by_member_id: effectivePaidByMemberId,
+        scope: finalScope,
         assigned_to_member_id: null,
         amount_clp: item.amount_clp,
         category_id: finalCategoryId,
         description: item.description,
         occurred_on: parseOccurredOn(occurredOn, item.due_date),
-        expense_type: parseExpenseType(expenseType),
+        expense_type: finalExpenseType,
         is_recurring_instance: !!item.recurring_source_id,
         recurring_source_id: item.recurring_source_id,
         notes: typeof notes === 'string' && notes.trim() ? notes.trim() : null,

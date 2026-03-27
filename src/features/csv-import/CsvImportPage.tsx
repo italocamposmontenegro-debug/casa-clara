@@ -1,10 +1,10 @@
-// Casa Clara — CSV Import Page (Plus)
+// Casa Clara — CSV Import Page (Strategic)
 import { useState } from 'react';
 import { Card, Button, FeatureGate } from '../../components/ui';
 import { FileSpreadsheet, Upload, Check, AlertCircle, Trash2 } from 'lucide-react';
+import { APP_NAME } from '../../lib/constants';
 import { supabase } from '../../lib/supabase';
 import { useHousehold } from '../../hooks/useHousehold';
-import { useAuth } from '../../hooks/useAuth';
 import { formatCLP } from '../../utils/format-clp';
 
 interface PreviewRow {
@@ -14,8 +14,7 @@ interface PreviewRow {
 }
 
 export function CsvImportPage() {
-  const { household, currentMember } = useHousehold();
-  const { user } = useAuth();
+  const { household } = useHousehold();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<PreviewRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,30 +58,18 @@ export function CsvImportPage() {
   };
 
   const handleImport = async () => {
-    if (!household || !user || !currentMember || preview.length === 0) return;
+    if (!household || preview.length === 0) return;
     setLoading(true);
     setError('');
 
     try {
-      const inserts = preview.map(row => ({
-        household_id: household.id,
-        created_by: user.id,
-        paid_by_member_id: currentMember.id,
-        type: 'expense' as const,
-        scope: 'shared' as const,
-        assigned_to_member_id: null,
-        amount_clp: row.amount,
-        category_id: null,
-        description: row.description,
-        occurred_on: row.date,
-        expense_type: 'variable' as const,
-        is_recurring_instance: false,
-        recurring_source_id: null,
-        notes: null,
-      }));
-
-      const { error: dbError } = await supabase.from('transactions').insert(inserts);
-      if (dbError) throw dbError;
+      const { error: importError } = await supabase.functions.invoke('import-csv-transactions', {
+        body: {
+          householdId: household.id,
+          rows: preview,
+        },
+      });
+      if (importError) throw importError;
 
       setSuccess(true);
       setPreview([]);
@@ -133,7 +120,7 @@ export function CsvImportPage() {
               </div>
               <h3 className="text-xl font-bold text-text mb-2">Carga tus movimientos</h3>
               <p className="text-text-muted mb-8 max-w-sm mx-auto">
-                Sube el extracto bancario de tu cuenta compartida. Casa Clara procesará los movimientos automáticamente.
+                Sube el extracto bancario de tu cuenta compartida. {APP_NAME} procesará los movimientos automáticamente.
               </p>
               
               <div className="space-y-4">

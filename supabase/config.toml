@@ -42,3 +42,18 @@ verify_jwt = false
 
 [functions.manage-recurring-transaction]
 verify_jwt = false
+
+[functions.manage-category]
+verify_jwt = false
+
+[functions.manage-goal]
+verify_jwt = false
+
+[functions.import-csv-transactions]
+verify_jwt = false
+
+[functions.manage-household-settings]
+verify_jwt = false
+
+[functions.save-monthly-review]
+verify_jwt = false

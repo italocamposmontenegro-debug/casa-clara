@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useHousehold } from '../../hooks/useHousehold';
 import { useSubscription } from '../../hooks/useSubscription';
 import { BlockingStatePage, LoadingPage } from '../ui';
+import type { FeatureKey } from '../../lib/constants';
 
 /**
  * Guard 1: Requiere autenticación
@@ -57,13 +58,14 @@ export function HouseholdGuard() {
 }
 
 /**
- * Guard 3: Requiere plan Plus activo (para rutas Plus)
+ * Guard 3: Requiere una capacidad del plan actual
  */
-export function PlusFeatureGuard() {
-  const { canUsePlus, isActive } = useSubscription();
+export function FeatureRouteGuard({ feature }: { feature: FeatureKey }) {
+  const { hasFeature, getUpgradeCopy } = useSubscription();
 
-  if (!isActive || !canUsePlus) {
-    return <Navigate to="/app/suscripcion" replace />;
+  if (!hasFeature(feature)) {
+    const upgrade = getUpgradeCopy(feature);
+    return <Navigate to={upgrade.route || '/app/suscripcion'} replace />;
   }
 
   return <Outlet />;

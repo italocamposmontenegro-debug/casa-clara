@@ -3,21 +3,23 @@
 // ============================================
 
 import { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useHousehold } from '../../hooks/useHousehold';
 import { useSubscription } from '../../hooks/useSubscription';
-import { Card, Button, Modal, InputField, EmptyState, SelectField, AlertBanner, ConfirmDialog } from '../../components/ui';
+import { Card, Button, Modal, InputField, EmptyState, SelectField, AlertBanner, ConfirmDialog, UpgradePromptCard } from '../../components/ui';
 import { RegisterPaymentModal } from '../../components/payments/RegisterPaymentModal';
 import { supabase } from '../../lib/supabase';
 import { syncRecurringItems } from '../../lib/recurring';
 import { formatCLP } from '../../utils/format-clp';
 import { formatDate, getCurrentMonthYear, getMonthRange, formatMonthYear } from '../../utils/dates-chile';
 import type { Category, PaymentCalendarItem } from '../../types/database';
+import { getFeatureUpgradeCopy } from '../../lib/constants';
 import { CalendarClock, Plus, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
 
 export function CalendarPage() {
   const { household, members, currentMember } = useHousehold();
-  const { canWrite } = useSubscription();
+  const { canWrite, hasFeature } = useSubscription();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { year, month } = getCurrentMonthYear();
   const statusFilter = searchParams.get('status');
@@ -35,10 +37,17 @@ export function CalendarPage() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [msgType, setMsgType] = useState<'success' | 'danger'>('success');
+  const canManageCalendar = canWrite && hasFeature('calendar_full');
+  const canUseCustomCategories = hasFeature('categories_custom');
+  const canSyncRecurring = hasFeature('recurring_transactions');
+  const calendarUpgrade = getFeatureUpgradeCopy('calendar_full');
+  const availableCategories = categories.filter((category) => canUseCustomCategories || category.is_default || category.id === categoryId);
 
   const load = useCallback(async () => {
     if (!household) return;
-    await syncRecurringItems(household.id).catch(() => null);
+    if (canSyncRecurring) {
+      await syncRecurringItems(household.id).catch(() => null);
+    }
     const { start, end } = getMonthRange(year, month);
     const [itemsRes, categoriesRes] = await Promise.all([
       supabase.from('payment_calendar_items').select('*')
@@ -51,7 +60,7 @@ export function CalendarPage() {
 
     setItems((itemsRes.data || []) as PaymentCalendarItem[]);
     setCategories((categoriesRes.data || []) as Category[]);
-  }, [household, year, month]);
+  }, [canSyncRecurring, household, year, month]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -169,6 +178,7 @@ export function CalendarPage() {
       if (editingItem) {
         const { error } = await supabase.functions.invoke('manage-calendar-item', {
           body: {
+            action: 'update',
             itemId: editingItem.id,
             description: desc,
             amountClp: parseInt(amount, 10),
@@ -181,16 +191,17 @@ export function CalendarPage() {
         setMsgType('success');
         setMsg('Pago programado actualizado correctamente.');
       } else {
-        await supabase.from('payment_calendar_items').insert({
-          household_id: household.id,
-          description: desc,
-          amount_clp: parseInt(amount, 10),
-          due_date: dueDate,
-          status: 'pending',
-          category_id: categoryId || null,
-          recurring_source_id: null,
-          paid_transaction_id: null,
+        const { error } = await supabase.functions.invoke('manage-calendar-item', {
+          body: {
+            action: 'create',
+            householdId: household.id,
+            description: desc,
+            amountClp: parseInt(amount, 10),
+            dueDate,
+            categoryId: categoryId || null,
+          },
         });
+        if (error) throw error;
 
         setMsgType('success');
         setMsg('Pago programado creado correctamente.');
@@ -219,7 +230,7 @@ export function CalendarPage() {
     nextParams.delete('itemId');
     nextParams.delete('mode');
     setSearchParams(nextParams, { replace: true });
-  }, [canWrite, items, searchParams, setSearchParams]);
+  }, [canManageCalendar, canWrite, items, searchParams, setSearchParams]);
 
   const statusIcons = {
     pending: <Clock className="h-4 w-4 text-warning" />,
@@ -239,8 +250,22 @@ export function CalendarPage() {
           <h1 className="text-2xl font-bold text-text">Calendario de pagos</h1>
           <p className="text-sm text-text-muted">{formatMonthYear(year, month)}</p>
         </div>
-        {canWrite && <Button icon={<Plus className="h-4 w-4" />} onClick={openCreateModal} size="sm">Agregar</Button>}
+        {canManageCalendar && <Button icon={<Plus className="h-4 w-4" />} onClick={openCreateModal} size="sm">Agregar</Button>}
       </div>
+
+      {!canManageCalendar && (
+        <div className="mb-6">
+          <UpgradePromptCard
+            badge={calendarUpgrade.badge}
+            title={calendarUpgrade.title}
+            description={calendarUpgrade.description}
+            highlights={calendarUpgrade.highlights}
+            actionLabel={calendarUpgrade.actionLabel || 'Ver planes'}
+            onAction={() => window.location.assign(calendarUpgrade.route)}
+            compact
+          />
+        </div>
+      )}
 
       {msg && (
         <div className="mb-6">
@@ -265,8 +290,17 @@ export function CalendarPage() {
         </div>
       )}
 
-      {visibleItems.length === 0 ? (
-        <EmptyState icon={<CalendarClock className="h-8 w-8" />} title="Sin pagos programados" description="Agrega los pagos que debes hacer este mes." />
+        {visibleItems.length === 0 ? (
+        <EmptyState
+          icon={<CalendarClock className="h-8 w-8" />}
+          eyebrow="Seguimiento del mes"
+          title="Todavía no hay pagos programados en este período"
+          description="Cuando registres vencimientos o pagos fijos, esta vista empezará a mostrar qué requiere atención antes de que se te pase."
+          secondaryText="El calendario sirve para sacar pagos de la memoria y convertirlos en una referencia visible del mes."
+          action={canManageCalendar
+            ? { label: 'Agregar pago', onClick: openCreateModal }
+            : { label: 'Ver planes', onClick: () => navigate('/app/suscripcion?feature=calendar_full') }}
+        />
       ) : (
         <div className="space-y-3">
           {visibleItems.map(item => (
@@ -282,7 +316,7 @@ export function CalendarPage() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-medium text-text">{formatCLP(item.amount_clp)}</span>
-                {canWrite && (
+                {canManageCalendar && (
                   <Button variant="ghost" size="sm" onClick={() => openEditModal(item)}>Editar</Button>
                 )}
                 {item.status !== 'paid' && canWrite && (
@@ -291,7 +325,7 @@ export function CalendarPage() {
                 {item.status === 'paid' && item.paid_transaction_id && (
                   <>
                     <span className="text-xs text-success">Gasto registrado</span>
-                    {canWrite && (
+                    {canManageCalendar && (
                       <Button variant="ghost" size="sm" onClick={() => setUndoingItem(item)}>Deshacer pago</Button>
                     )}
                   </>
@@ -308,14 +342,14 @@ export function CalendarPage() {
           <InputField label="Monto (CLP)" type="number" value={amount} onChange={e => setAmount(e.target.value)} />
           <InputField label="Fecha de vencimiento" type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
           <SelectField
-            label="Categoría"
-            value={categoryId}
-            onChange={setCategoryId}
-            options={[
-              { value: '', label: 'Sin categoría' },
-              ...categories.map(category => ({ value: category.id, label: `${category.icon} ${category.name}` })),
-            ]}
-          />
+              label="Categoría"
+              value={categoryId}
+              onChange={setCategoryId}
+              options={[
+                { value: '', label: 'Sin categoría' },
+                ...availableCategories.map(category => ({ value: category.id, label: `${category.icon} ${category.name}` })),
+              ]}
+            />
           {editingItem?.status === 'paid' && editingItem.paid_transaction_id && (
             <AlertBanner
               type="info"
@@ -330,12 +364,12 @@ export function CalendarPage() {
           )}
           <div className="flex items-center justify-between gap-3">
             <div className="flex gap-2">
-              {editingItem?.status === 'paid' && editingItem.paid_transaction_id && canWrite && (
+              {editingItem?.status === 'paid' && editingItem.paid_transaction_id && canManageCalendar && (
                 <Button variant="ghost" onClick={() => openUndoPaymentConfirm(editingItem)}>
                   Deshacer pago
                 </Button>
               )}
-              {editingItem && !editingItem.recurring_source_id && canWrite && (
+              {editingItem && !editingItem.recurring_source_id && canManageCalendar && (
                 <Button variant="ghost" onClick={() => openDeleteItemConfirm(editingItem)}>
                   Eliminar pago
                 </Button>

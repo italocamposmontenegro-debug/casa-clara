@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal, Button, InputField, SelectField, AlertBanner } from '../ui';
 import { supabase } from '../../lib/supabase';
+import { useSubscription } from '../../hooks/useSubscription';
 import { formatCLP } from '../../utils/format-clp';
 import { formatDate } from '../../utils/dates-chile';
 import type { Category, HouseholdMember, PaymentCalendarItem } from '../../types/database';
@@ -22,6 +23,7 @@ export function RegisterPaymentModal({
   onClose: () => void;
   onSaved: (message: string) => void | Promise<void>;
 }) {
+  const { hasFeature } = useSubscription();
   const [paidBy, setPaidBy] = useState('');
   const [paidOn, setPaidOn] = useState('');
   const [paidScope, setPaidScope] = useState<'shared' | 'personal'>('shared');
@@ -30,6 +32,9 @@ export function RegisterPaymentModal({
   const [paymentNotes, setPaymentNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const canUseSplitManual = hasFeature('split_manual');
+  const canUseCustomCategories = hasFeature('categories_custom');
+  const availableCategories = categories.filter((category) => canUseCustomCategories || category.is_default || category.id === categoryId);
 
   useEffect(() => {
     if (!item) return;
@@ -96,12 +101,16 @@ export function RegisterPaymentModal({
           </p>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <SelectField
-            label="¿Quién pagó?"
-            value={paidBy}
-            onChange={setPaidBy}
-            options={members.map(member => ({ value: member.id, label: member.display_name }))}
-          />
+          {canUseSplitManual ? (
+            <SelectField
+              label="¿Quién pagó?"
+              value={paidBy}
+              onChange={setPaidBy}
+              options={members.map(member => ({ value: member.id, label: member.display_name }))}
+            />
+          ) : (
+            <InputField label="Registrado por" value={members.find((member) => member.id === paidBy)?.display_name || 'Miembro'} onChange={() => {}} readOnly />
+          )}
           <InputField
             label="Fecha de pago"
             type="date"
@@ -109,33 +118,40 @@ export function RegisterPaymentModal({
             onChange={e => setPaidOn(e.target.value)}
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <SelectField
-            label="Alcance"
-            value={paidScope}
-            onChange={value => setPaidScope(value as 'shared' | 'personal')}
-            options={[
-              { value: 'shared', label: 'Compartido' },
-              { value: 'personal', label: 'Personal' },
-            ]}
+        {canUseSplitManual ? (
+          <div className="grid grid-cols-2 gap-4">
+            <SelectField
+              label="Alcance"
+              value={paidScope}
+              onChange={value => setPaidScope(value as 'shared' | 'personal')}
+              options={[
+                { value: 'shared', label: 'Compartido' },
+                { value: 'personal', label: 'Personal' },
+              ]}
+            />
+            <SelectField
+              label="Tipo de gasto"
+              value={expenseType}
+              onChange={value => setExpenseType(value as 'fixed' | 'variable')}
+              options={[
+                { value: 'fixed', label: 'Fijo' },
+                { value: 'variable', label: 'Variable' },
+              ]}
+            />
+          </div>
+        ) : (
+          <AlertBanner
+            type="info"
+            message="En Free el pago se registra como gasto compartido del miembro que lo marca."
           />
-          <SelectField
-            label="Tipo de gasto"
-            value={expenseType}
-            onChange={value => setExpenseType(value as 'fixed' | 'variable')}
-            options={[
-              { value: 'fixed', label: 'Fijo' },
-              { value: 'variable', label: 'Variable' },
-            ]}
-          />
-        </div>
+        )}
         <SelectField
           label="Categoría"
           value={categoryId}
           onChange={setCategoryId}
           options={[
             { value: '', label: 'Sin categoría' },
-            ...categories.map(category => ({ value: category.id, label: `${category.icon} ${category.name}` })),
+            ...availableCategories.map(category => ({ value: category.id, label: `${category.icon} ${category.name}` })),
           ]}
         />
         <InputField

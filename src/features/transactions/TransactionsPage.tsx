@@ -1,50 +1,75 @@
 // ============================================
-// Casa Clara — Transactions Page (CRUD + Filters)
+// Casa Clara — Transactions Page — Stitch M3 Edition
 // ============================================
 
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useHousehold } from '../../hooks/useHousehold';
 import { useSubscription } from '../../hooks/useSubscription';
-import { Card, Button, InputField, SelectField, Modal, EmptyState, ConfirmDialog, AlertBanner } from '../../components/ui';
+import { Button, InputField, SelectField, Modal, EmptyState, ConfirmDialog, AlertBanner } from '../../components/ui';
 import { supabase } from '../../lib/supabase';
+import { trackOnce } from '../../lib/analytics';
 import { formatCLP } from '../../utils/format-clp';
 import { formatDate, getCurrentMonthYear, getMonthRange, formatMonthYear } from '../../utils/dates-chile';
 import type { Transaction, Category } from '../../types/database';
 import { Plus, Edit2, Trash2, ArrowUpDown } from 'lucide-react';
 
+// ─── M3 CSS variable aliases ─────────────────────────────────────────────────
+const C = {
+  surface:              'var(--color-m3-surface-container)',
+  surfaceLow:           'var(--color-m3-surface-container-low)',
+  outline:              'var(--color-m3-outline-variant)',
+  onSurface:            'var(--color-m3-on-surface)',
+  onSurfaceVariant:     'var(--color-m3-on-surface-variant)',
+  primary:              'var(--color-m3-primary)',
+  onPrimary:            'var(--color-m3-on-primary)',
+  primaryContainer:     'var(--color-m3-primary-container)',
+  onPrimaryContainer:   'var(--color-m3-on-primary-container)',
+  secondaryContainer:   'var(--color-m3-secondary-container)',
+  onSecondaryContainer: 'var(--color-m3-on-secondary-container)',
+  error:                'var(--color-m3-error)',
+  errorContainer:       'var(--color-m3-error-container)',
+  onErrorContainer:     'var(--color-m3-on-error-container)',
+  successBg:            '#d0f0e4',
+  successText:          '#0a4f35',
+  fontHeadline:         'var(--font-headline)',
+};
+
 export function TransactionsPage() {
   const { household, members, currentMember } = useHousehold();
-  const { canWrite } = useSubscription();
+  const { canWrite, hasFeature } = useSubscription();
   const { year, month } = getCurrentMonthYear();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories,   setCategories]   = useState<Category[]>([]);
 
-  const [showForm, setShowForm] = useState(false);
-  const [editingTx, setEditingTx] = useState<Transaction | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showForm,   setShowForm]   = useState(false);
+  const [editingTx,  setEditingTx]  = useState<Transaction | null>(null);
+  const [deleteId,   setDeleteId]   = useState<string | null>(null);
 
   // Filters
-  const [filterMonth, setFilterMonth] = useState(searchParams.get('month') || `${year}-${String(month).padStart(2, '0')}`);
+  const [filterMonth,    setFilterMonth]    = useState(searchParams.get('month') || `${year}-${String(month).padStart(2, '0')}`);
   const [filterCategory, setFilterCategory] = useState(searchParams.get('category') || '');
-  const [filterMember, setFilterMember] = useState(searchParams.get('member') || '');
-  const [filterType, setFilterType] = useState(searchParams.get('type') || '');
+  const [filterMember,   setFilterMember]   = useState(searchParams.get('member') || '');
+  const [filterType,     setFilterType]     = useState(searchParams.get('type') || '');
 
   // Form
-  const [formType, setFormType] = useState<'income' | 'expense'>('expense');
-  const [formDesc, setFormDesc] = useState('');
-  const [formAmount, setFormAmount] = useState('');
-  const [formCategory, setFormCategory] = useState('');
-  const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
-  const [formScope, setFormScope] = useState<'personal' | 'shared'>('shared');
-  const [formPaidBy, setFormPaidBy] = useState('');
+  const [formType,        setFormType]        = useState<'income' | 'expense'>('expense');
+  const [formDesc,        setFormDesc]        = useState('');
+  const [formAmount,      setFormAmount]      = useState('');
+  const [formCategory,    setFormCategory]    = useState('');
+  const [formDate,        setFormDate]        = useState(new Date().toISOString().split('T')[0]);
+  const [formScope,       setFormScope]       = useState<'personal' | 'shared'>('shared');
+  const [formPaidBy,      setFormPaidBy]      = useState('');
   const [formExpenseType, setFormExpenseType] = useState<'fixed' | 'variable'>('variable');
-  const [formNotes, setFormNotes] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState('');
-  const [msgType, setMsgType] = useState<'success' | 'danger'>('success');
+  const [formNotes,       setFormNotes]       = useState('');
+  const [saving,          setSaving]          = useState(false);
+  const [msg,             setMsg]             = useState('');
+  const [msgType,         setMsgType]         = useState<'success' | 'danger'>('success');
+
+  const canUseCustomCategories = hasFeature('categories_custom');
+  const canUseSplitManual      = hasFeature('split_manual');
 
   const loadData = useCallback(async () => {
     if (!household) return;
@@ -67,9 +92,7 @@ export function TransactionsPage() {
     setCategories((catRes.data || []) as Category[]);
   }, [household, filterMonth]);
 
-  useEffect(() => {
-    if (currentMember) setFormPaidBy(currentMember.id);
-  }, [currentMember]);
+  useEffect(() => { if (currentMember) setFormPaidBy(currentMember.id); }, [currentMember]);
 
   useEffect(() => {
     setFilterMonth(searchParams.get('month') || `${year}-${String(month).padStart(2, '0')}`);
@@ -78,21 +101,20 @@ export function TransactionsPage() {
     setFilterType(searchParams.get('type') || '');
   }, [month, searchParams, year]);
 
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
+  useEffect(() => { void loadData(); }, [loadData]);
 
   const filtered = transactions.filter(t => {
     if (filterCategory && t.category_id !== filterCategory) return false;
-    if (filterMember && t.paid_by_member_id !== filterMember) return false;
-    if (filterType && t.type !== filterType) return false;
+    if (filterMember   && t.paid_by_member_id !== filterMember) return false;
+    if (filterType     && t.type !== filterType) return false;
     return true;
   });
 
-  const totalIncome = filtered.filter(t => t.type === 'income').reduce((s, t) => s + t.amount_clp, 0);
+  const totalIncome   = filtered.filter(t => t.type === 'income').reduce((s, t) => s + t.amount_clp, 0);
   const totalExpenses = filtered.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount_clp, 0);
+  const availableCategories = categories.filter(c => canUseCustomCategories || c.is_default || c.id === formCategory);
 
-  function openCreate() {
+  const openCreate = useCallback(() => {
     setEditingTx(null);
     setFormType('expense');
     setFormDesc('');
@@ -104,7 +126,17 @@ export function TransactionsPage() {
     setFormExpenseType('variable');
     setFormNotes('');
     setShowForm(true);
-  }
+  }, [currentMember?.id]);
+
+  useEffect(() => {
+    const createIntent = searchParams.get('create');
+    if (!createIntent || !canWrite) return;
+    openCreate();
+    if (createIntent === 'income' || createIntent === 'expense') setFormType(createIntent);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('create');
+    setSearchParams(nextParams, { replace: true });
+  }, [canWrite, openCreate, searchParams, setSearchParams]);
 
   function openEdit(tx: Transaction) {
     setEditingTx(tx);
@@ -134,18 +166,16 @@ export function TransactionsPage() {
     setMsg('');
 
     const data = {
-      household_id: household.id,
-      created_by: currentMember.user_id!,
+      householdId: household.id,
       type: formType,
       paid_by_member_id: formPaidBy,
       scope: formScope,
-      assigned_to_member_id: null,
-      amount_clp: parseInt(formAmount),
-      category_id: formType === 'expense' ? formCategory || null : null,
+      amountClp: parseInt(formAmount, 10),
+      categoryId: formType === 'expense' ? formCategory || null : null,
       description: formDesc,
-      occurred_on: formDate,
-      expense_type: formType === 'expense' ? formExpenseType : null,
-      is_recurring_instance: false,
+      occurredOn: formDate,
+      expenseType: formType === 'expense' ? formExpenseType : null,
+      paidByMemberId: formPaidBy,
       notes: formNotes || null,
     };
 
@@ -166,31 +196,23 @@ export function TransactionsPage() {
             notes: formNotes || null,
           },
         });
-
         if (error) throw error;
-
         setMsgType('success');
-        setMsg(formType === 'income'
-          ? 'Ingreso actualizado correctamente.'
-          : 'Gasto actualizado correctamente.');
+        setMsg(formType === 'income' ? 'Ingreso actualizado correctamente.' : 'Gasto actualizado correctamente.');
       } else {
-        const { error } = await supabase.from('transactions').insert(data);
+        const { error } = await supabase.functions.invoke('manage-transaction', { body: { action: 'create', ...data } });
         if (error) throw error;
+        trackOnce(`first-transaction:${household.id}`, 'first_transaction_created', { household_id: household.id, type: formType }, 'local');
         setMsgType('success');
-        setMsg(formType === 'income'
-          ? 'Ingreso creado correctamente.'
-          : 'Gasto creado correctamente.');
+        setMsg(formType === 'income' ? 'Ingreso creado correctamente.' : 'Gasto creado correctamente.');
       }
-
       setShowForm(false);
       await loadData();
     } catch (error) {
       setMsgType('danger');
       setMsg(error instanceof Error
         ? error.message
-        : formType === 'income'
-          ? 'No pudimos guardar el ingreso.'
-          : 'No pudimos guardar el gasto.');
+        : formType === 'income' ? 'No pudimos guardar el ingreso.' : 'No pudimos guardar el gasto.');
     } finally {
       setSaving(false);
     }
@@ -200,14 +222,9 @@ export function TransactionsPage() {
     if (!deleteId) return;
     try {
       const { error } = await supabase.functions.invoke('manage-transaction', {
-        body: {
-          action: 'delete',
-          transactionId: deleteId,
-        },
+        body: { action: 'delete', transactionId: deleteId },
       });
-
       if (error) throw error;
-
       setMsgType('success');
       setMsg('Movimiento eliminado correctamente.');
       setDeleteId(null);
@@ -218,109 +235,153 @@ export function TransactionsPage() {
     }
   }
 
-  const getMemberName = (id: string) => members.find(m => m.id === id)?.display_name || '—';
+  const getMemberName   = (id: string)       => members.find(mb => mb.id === id)?.display_name || '—';
   const getCategoryName = (id: string | null) => categories.find(c => c.id === id)?.name || '—';
   const getCategoryIcon = (id: string | null) => categories.find(c => c.id === id)?.icon || '📦';
 
   const [y, m] = filterMonth.split('-').map(Number);
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-5 max-w-6xl mx-auto">
+
+      {/* ── Page header ──────────────────────────────────── */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text">Movimientos</h1>
-          <p className="text-sm text-text-muted">{formatMonthYear(y, m)}</p>
+          <h1 className="text-3xl font-semibold" style={{ fontFamily: C.fontHeadline, color: C.onSurface }}>
+            Movimientos
+          </h1>
+          <p className="mt-1 text-sm" style={{ color: C.onSurfaceVariant }}>
+            Aquí se arma la lectura real del mes. {formatMonthYear(y, m)}
+          </p>
         </div>
         {canWrite && (
-          <Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>
+          <button
+            type="button"
+            onClick={openCreate}
+            className="inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer hover:opacity-90"
+            style={{ background: C.primary, color: C.onPrimary }}
+          >
+            <Plus className="h-4 w-4" />
             Nuevo
-          </Button>
+          </button>
         )}
       </div>
 
-      {msg && (
-        <div className="mb-6">
-          <AlertBanner type={msgType} message={msg} onClose={() => setMsg('')} />
-        </div>
+      {/* ── Alerts ───────────────────────────────────────── */}
+      {msg && <AlertBanner type={msgType} message={msg} onClose={() => setMsg('')} />}
+      {!canUseSplitManual && (
+        <AlertBanner
+          type="info"
+          message="En Free registras movimientos básicos. El reparto manual y quién pagó qué se habilitan desde Esencial."
+        />
       )}
 
-      {/* Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <Card padding="sm">
-          <p className="text-xs text-text-muted">Ingresos</p>
-          <p className="text-lg font-bold text-success">{formatCLP(totalIncome)}</p>
-        </Card>
-        <Card padding="sm">
-          <p className="text-xs text-text-muted">Gastos</p>
-          <p className="text-lg font-bold text-danger">{formatCLP(totalExpenses)}</p>
-        </Card>
-        <Card padding="sm">
-          <p className="text-xs text-text-muted">Balance</p>
-          <p className={`text-lg font-bold ${totalIncome - totalExpenses >= 0 ? 'text-success' : 'text-danger'}`}>
-            {formatCLP(totalIncome - totalExpenses)}
-          </p>
-        </Card>
+      {/* ── Summary cards ────────────────────────────────── */}
+      <div className="grid grid-cols-3 gap-4">
+        <TxSummaryCard label="Ingresos" value={formatCLP(totalIncome)} tone="success" />
+        <TxSummaryCard label="Gastos"   value={formatCLP(totalExpenses)} tone="danger" />
+        <TxSummaryCard
+          label="Balance"
+          value={formatCLP(totalIncome - totalExpenses)}
+          tone={totalIncome - totalExpenses >= 0 ? 'success' : 'danger'}
+        />
       </div>
 
-      {/* Filters */}
-      <Card className="mb-6">
+      {/* ── Filters ──────────────────────────────────────── */}
+      <div className="rounded-2xl p-4" style={{ background: C.surface, border: `1px solid ${C.outline}` }}>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <InputField label="Mes" type="month" value={filterMonth} onChange={e => setFilterMonth(e.target.value)} />
           <SelectField label="Categoría" value={filterCategory} onChange={setFilterCategory}
             options={[{ value: '', label: 'Todas' }, ...categories.map(c => ({ value: c.id, label: `${c.icon} ${c.name}` }))]} />
           <SelectField label="Miembro" value={filterMember} onChange={setFilterMember}
-            options={[{ value: '', label: 'Todos' }, ...members.map(m => ({ value: m.id, label: m.display_name }))]} />
+            options={[{ value: '', label: 'Todos' }, ...members.map(mb => ({ value: mb.id, label: mb.display_name }))]} />
           <SelectField label="Tipo" value={filterType} onChange={setFilterType}
             options={[{ value: '', label: 'Todos' }, { value: 'income', label: 'Ingresos' }, { value: 'expense', label: 'Gastos' }]} />
         </div>
-      </Card>
+      </div>
 
-      {/* Table */}
-      <Card padding="sm">
+      {/* ── Transactions table ───────────────────────────── */}
+      <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${C.outline}`, background: C.surface }}>
         {filtered.length === 0 ? (
-          <EmptyState icon={<ArrowUpDown className="h-8 w-8" />} title="Sin movimientos" description="No hay movimientos para este período." />
+          <EmptyState
+            icon={<ArrowUpDown className="h-8 w-8" />}
+            eyebrow="Lectura inicial"
+            title="Todavía no hay movimientos en este período"
+            description="Cuando registres ingresos o gastos, esta vista empezará a mostrar cómo se está moviendo el hogar."
+            secondaryText="El primer movimiento ya sirve para convertir intuición en una referencia concreta."
+            action={canWrite ? { label: 'Registrar movimiento', onClick: openCreate } : undefined}
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 font-medium text-text-muted">Fecha</th>
-                  <th className="text-left py-3 px-4 font-medium text-text-muted">Descripción</th>
-                  <th className="text-left py-3 px-4 font-medium text-text-muted">Categoría</th>
-                  <th className="text-left py-3 px-4 font-medium text-text-muted">Pagó</th>
-                  <th className="text-left py-3 px-4 font-medium text-text-muted">Tipo</th>
-                  <th className="text-right py-3 px-4 font-medium text-text-muted">Monto</th>
-                  {canWrite && <th className="py-3 px-4"></th>}
+                <tr style={{ borderBottom: `1px solid ${C.outline}` }}>
+                  {['Fecha', 'Descripción', 'Categoría', 'Pagó', 'Tipo', 'Monto'].map(h => (
+                    <th
+                      key={h}
+                      className={`py-3 px-4 font-medium text-xs uppercase tracking-wider ${h === 'Monto' ? 'text-right' : 'text-left'}`}
+                      style={{ color: C.onSurfaceVariant }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                  {canWrite && <th className="py-3 px-4" />}
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(tx => (
-                  <tr key={tx.id} className="border-b border-border-light hover:bg-surface-hover transition-colors">
-                    <td className="py-3 px-4 text-text-muted">{formatDate(tx.occurred_on)}</td>
-                    <td className="py-3 px-4">
-                      <span className="text-text">{tx.description}</span>
-                      {tx.scope === 'shared' && <span className="ml-1.5 text-xs text-primary">compartido</span>}
-                      {tx.is_recurring_instance && <span className="ml-1.5 text-xs text-warning">recurrente</span>}
+                  <tr key={tx.id} className="transition-colors hover:bg-black/5" style={{ borderBottom: `1px solid ${C.outline}` }}>
+                    <td className="py-3 px-4 text-xs" style={{ color: C.onSurfaceVariant }}>
+                      {formatDate(tx.occurred_on)}
                     </td>
-                    <td className="py-3 px-4 text-text-secondary">{getCategoryIcon(tx.category_id)} {getCategoryName(tx.category_id)}</td>
-                    <td className="py-3 px-4 text-text-secondary">{getMemberName(tx.paid_by_member_id)}</td>
                     <td className="py-3 px-4">
-                      <span className={`badge ${tx.type === 'income' ? 'badge-success' : 'badge-danger'}`}>
+                      <span className="font-medium" style={{ color: C.onSurface }}>{tx.description}</span>
+                      {tx.scope === 'shared' && (
+                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full font-medium"
+                          style={{ background: C.primaryContainer, color: C.onPrimaryContainer }}>
+                          compartido
+                        </span>
+                      )}
+                      {tx.is_recurring_instance && (
+                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full font-medium"
+                          style={{ background: C.secondaryContainer, color: C.onSecondaryContainer }}>
+                          recurrente
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-sm" style={{ color: C.onSurfaceVariant }}>
+                      {getCategoryIcon(tx.category_id)} {getCategoryName(tx.category_id)}
+                    </td>
+                    <td className="py-3 px-4 text-sm" style={{ color: C.onSurfaceVariant }}>
+                      {getMemberName(tx.paid_by_member_id)}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="text-xs px-2.5 py-1 rounded-full font-medium"
+                        style={tx.type === 'income'
+                          ? { background: C.successBg, color: C.successText }
+                          : { background: C.errorContainer, color: C.onErrorContainer }
+                        }
+                      >
                         {tx.type === 'income' ? 'Ingreso' : 'Gasto'}
                       </span>
                     </td>
-                    <td className={`py-3 px-4 text-right font-medium ${tx.type === 'income' ? 'text-success' : 'text-text'}`}>
+                    <td className="py-3 px-4 text-right font-semibold"
+                      style={{ color: tx.type === 'income' ? C.successText : C.onSurface }}>
                       {tx.type === 'income' ? '+' : '-'}{formatCLP(tx.amount_clp)}
                     </td>
                     {canWrite && (
                       <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="sm" icon={<Edit2 className="h-3.5 w-3.5" />} onClick={() => openEdit(tx)}>
-                            Editar
-                          </Button>
-                          <Button variant="ghost" size="sm" icon={<Trash2 className="h-3.5 w-3.5" />} className="text-danger hover:bg-danger-bg" onClick={() => setDeleteId(tx.id)}>
-                            Eliminar
-                          </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <button type="button" onClick={() => openEdit(tx)}
+                            className="p-1.5 rounded-xl transition hover:bg-black/10 cursor-pointer"
+                            style={{ color: C.onSurfaceVariant }} title="Editar">
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </button>
+                          <button type="button" onClick={() => setDeleteId(tx.id)}
+                            className="p-1.5 rounded-xl transition hover:bg-black/10 cursor-pointer"
+                            style={{ color: C.error }} title="Eliminar">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                       </td>
                     )}
@@ -330,9 +391,9 @@ export function TransactionsPage() {
             </table>
           </div>
         )}
-      </Card>
+      </div>
 
-      {/* Form Modal */}
+      {/* ── Form Modal ───────────────────────────────────── */}
       <Modal
         open={showForm}
         onClose={() => setShowForm(false)}
@@ -345,9 +406,14 @@ export function TransactionsPage() {
           <div className="flex gap-2">
             {(['expense', 'income'] as const).map(t => (
               <button key={t} onClick={() => setFormType(t)}
-                className={`flex-1 py-2.5 text-sm font-medium rounded-lg border transition-colors cursor-pointer ${
-                  formType === t ? (t === 'income' ? 'bg-success-bg border-success text-success' : 'bg-danger-bg border-danger text-danger') : 'border-border text-text-muted'
-                }`}>
+                className="flex-1 py-2.5 text-sm font-medium rounded-2xl transition-colors cursor-pointer"
+                style={formType === t
+                  ? t === 'income'
+                    ? { background: C.successBg, color: C.successText, border: `1px solid ${C.successBg}` }
+                    : { background: C.errorContainer, color: C.onErrorContainer, border: `1px solid ${C.errorContainer}` }
+                  : { background: C.surface, color: C.onSurfaceVariant, border: `1px solid ${C.outline}` }
+                }
+              >
                 {t === 'income' ? 'Ingreso' : 'Gasto'}
               </button>
             ))}
@@ -358,53 +424,48 @@ export function TransactionsPage() {
             onChange={e => setFormDesc(e.target.value)}
             placeholder={formType === 'income' ? 'Ej: Sueldo' : 'Ej: Supermercado Líder'}
           />
-          <InputField
-            label="Monto (CLP)"
-            type="number"
-            value={formAmount}
+          <InputField label="Monto (CLP)" type="number" value={formAmount}
             onChange={e => setFormAmount(e.target.value)}
-            placeholder={formType === 'income' ? 'Ej: 1200000' : 'Ej: 45000'}
-          />
+            placeholder={formType === 'income' ? 'Ej: 1200000' : 'Ej: 45000'} />
           <div className="grid grid-cols-2 gap-4">
             {formType === 'expense' ? (
               <SelectField label="Categoría" value={formCategory} onChange={setFormCategory} placeholder="Seleccionar"
-                options={categories.map(c => ({ value: c.id, label: `${c.icon} ${c.name}` }))} />
+                options={availableCategories.map(c => ({ value: c.id, label: `${c.icon} ${c.name}` }))} />
             ) : (
-              <InputField
-                label="Fecha"
-                type="date"
-                value={formDate}
-                onChange={e => setFormDate(e.target.value)}
-              />
+              <InputField label="Fecha" type="date" value={formDate} onChange={e => setFormDate(e.target.value)} />
             )}
             {formType === 'expense' ? (
               <InputField label="Fecha" type="date" value={formDate} onChange={e => setFormDate(e.target.value)} />
             ) : (
-              <SelectField
-                label="Destino"
-                value={formScope}
-                onChange={v => setFormScope(v as 'personal' | 'shared')}
-                options={[{ value: 'shared', label: 'Compartido' }, { value: 'personal', label: 'Personal' }]}
-              />
-            )}
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <SelectField label={formType === 'income' ? '¿Quién lo recibió?' : '¿Quién pagó?'} value={formPaidBy} onChange={setFormPaidBy}
-              options={members.map(m => ({ value: m.id, label: m.display_name }))} />
-            {formType === 'expense' ? (
-              <SelectField label="Alcance" value={formScope} onChange={v => setFormScope(v as 'personal' | 'shared')}
+              <SelectField label="Destino" value={formScope} onChange={v => setFormScope(v as 'personal' | 'shared')}
                 options={[{ value: 'shared', label: 'Compartido' }, { value: 'personal', label: 'Personal' }]} />
-            ) : (
-              <div />
             )}
           </div>
-          {formType === 'expense' && (
+          {canUseSplitManual ? (
+            <div className="grid grid-cols-2 gap-4">
+              <SelectField label={formType === 'income' ? '¿Quién lo recibió?' : '¿Quién pagó?'} value={formPaidBy} onChange={setFormPaidBy}
+                options={members.map(mb => ({ value: mb.id, label: mb.display_name }))} />
+              {formType === 'expense' ? (
+                <SelectField label="Alcance" value={formScope} onChange={v => setFormScope(v as 'personal' | 'shared')}
+                  options={[{ value: 'shared', label: 'Compartido' }, { value: 'personal', label: 'Personal' }]} />
+              ) : <div />}
+            </div>
+          ) : (
+            <AlertBanner
+              type="info"
+              message={formType === 'income'
+                ? 'El ingreso quedará asociado al miembro que lo registra.'
+                : 'El gasto quedará asociado al miembro que lo registra y como compartido por defecto.'}
+            />
+          )}
+          {formType === 'expense' && canUseSplitManual && (
             <SelectField label="Tipo de gasto" value={formExpenseType} onChange={v => setFormExpenseType(v as 'fixed' | 'variable')}
               options={[{ value: 'variable', label: 'Variable' }, { value: 'fixed', label: 'Fijo' }]} />
           )}
-          <InputField label="Notas (opcional)" value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder="Notas adicionales..." />
+          <InputField label="Notas (opcional)" value={formNotes}
+            onChange={e => setFormNotes(e.target.value)} placeholder="Notas adicionales..." />
           {editingTx?.is_recurring_instance && (
-            <p className="text-xs text-text-muted">
+            <p className="text-xs" style={{ color: C.onSurfaceVariant }}>
               Si este gasto viene de una recurrencia o pago programado, los cambios mantendrán ese enlace actualizado.
             </p>
           )}
@@ -419,9 +480,27 @@ export function TransactionsPage() {
         </div>
       </Modal>
 
-      {/* Delete confirm */}
+      {/* ── Delete confirm ───────────────────────────────── */}
       <ConfirmDialog open={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete}
-        title="Eliminar movimiento" message="¿Estás seguro de que quieres eliminar este movimiento? Esta acción no se puede deshacer." confirmLabel="Eliminar" />
+        title="Eliminar movimiento"
+        message="¿Estás seguro de que quieres eliminar este movimiento? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar" />
+    </div>
+  );
+}
+
+// ─── Local sub-component ─────────────────────────────────────────────────────
+function TxSummaryCard({ label, value, tone }: { label: string; value: string; tone: 'success' | 'danger' | 'neutral' }) {
+  const styles = {
+    success: { bg: '#d0f0e4', color: '#0a4f35' },
+    danger:  { bg: 'var(--color-m3-error-container)', color: 'var(--color-m3-on-error-container)' },
+    neutral: { bg: 'var(--color-m3-surface-container)', color: 'var(--color-m3-on-surface)' },
+  };
+  const s = styles[tone];
+  return (
+    <div className="rounded-2xl px-4 py-4" style={{ background: s.bg }}>
+      <p className="text-xs uppercase tracking-wider font-medium opacity-70" style={{ color: s.color }}>{label}</p>
+      <p className="mt-2 text-xl font-bold" style={{ fontFamily: 'var(--font-headline)', color: s.color }}>{value}</p>
     </div>
   );
 }

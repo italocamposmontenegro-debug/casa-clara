@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { assertHouseholdFeature } from '../_shared/entitlements.ts';
 
 const supabase = createServiceClient();
 
@@ -195,6 +196,7 @@ serve(async (req) => {
     if (action === 'create') {
       const householdId = parseRequiredText(body.householdId, 'El hogar');
       await assertHouseholdAccess(householdId, user.id);
+      await assertHouseholdFeature(supabase, householdId, 'recurring_transactions');
 
       const description = parseRequiredText(body.description, 'La descripcion');
       const amountClp = parseAmount(body.amountClp);
@@ -245,6 +247,7 @@ serve(async (req) => {
     }
 
     await assertHouseholdAccess(recurring.household_id, user.id);
+    await assertHouseholdFeature(supabase, recurring.household_id, 'recurring_transactions');
 
     if (action === 'delete') {
       await deletePendingGeneratedItems(recurring.id);

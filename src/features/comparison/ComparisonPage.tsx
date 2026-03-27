@@ -110,7 +110,7 @@ export function ComparisonPage() {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <FeatureGate feature="comparison">
+    <FeatureGate feature="monthly_comparison">
       <div>
         <h1 className="text-2xl font-bold text-text mb-6">Comparación mensual</h1>
         

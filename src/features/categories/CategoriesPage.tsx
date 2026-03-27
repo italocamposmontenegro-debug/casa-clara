@@ -2,19 +2,19 @@
 // Casa Clara — Categories Page
 // ============================================
 
-/* eslint-disable react-hooks/set-state-in-effect */
-
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useHousehold } from '../../hooks/useHousehold';
 import { useSubscription } from '../../hooks/useSubscription';
-import { Card, Button, InputField, Modal, EmptyState } from '../../components/ui';
+import { Card, Button, InputField, Modal, EmptyState, AlertBanner, UpgradePromptCard } from '../../components/ui';
 import { supabase } from '../../lib/supabase';
 import type { Category } from '../../types/database';
 import { Plus, Edit2, Tags } from 'lucide-react';
 
 export function CategoriesPage() {
   const { household } = useHousehold();
-  const { canWrite } = useSubscription();
+  const { canWrite, hasFeature, getUpgradeCopy } = useSubscription();
+  const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
@@ -22,6 +22,10 @@ export function CategoriesPage() {
   const [icon, setIcon] = useState('📦');
   const [color, setColor] = useState('#6B7280');
   const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [msgType, setMsgType] = useState<'success' | 'danger'>('success');
+  const canManageCustomCategories = canWrite && hasFeature('categories_custom');
+  const categoriesUpgrade = getUpgradeCopy('categories_custom');
 
   const loadCategories = useCallback(async () => {
     if (!household) return;
@@ -38,18 +42,52 @@ export function CategoriesPage() {
   async function handleSave() {
     if (!household) return;
     setSaving(true);
-    const data = { household_id: household.id, name, icon, color, is_default: false, sort_order: categories.length };
-    if (editing) { await supabase.from('categories').update({ name, icon, color }).eq('id', editing.id); }
-    else { await supabase.from('categories').insert(data); }
-    setSaving(false); setShowForm(false); loadCategories();
+    setMsg('');
+    try {
+      const { error } = await supabase.functions.invoke('manage-category', {
+        body: editing
+          ? { action: 'update', categoryId: editing.id, name, icon, color }
+          : { action: 'create', householdId: household.id, name, icon, color },
+      });
+      if (error) throw error;
+      setMsgType('success');
+      setMsg(editing ? 'Categoría actualizada correctamente.' : 'Categoría creada correctamente.');
+      setShowForm(false);
+      await loadCategories();
+    } catch (error) {
+      setMsgType('danger');
+      setMsg(error instanceof Error ? error.message : 'No pudimos guardar la categoría.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-text">Categorías</h1>
-        {canWrite && <Button icon={<Plus className="h-4 w-4" />} onClick={openCreate} size="sm">Nueva</Button>}
+        {canManageCustomCategories && <Button icon={<Plus className="h-4 w-4" />} onClick={openCreate} size="sm">Nueva</Button>}
       </div>
+
+      {msg && (
+        <div className="mb-6">
+          <AlertBanner type={msgType} message={msg} onClose={() => setMsg('')} />
+        </div>
+      )}
+
+      {!canManageCustomCategories && (
+        <div className="mb-6">
+          <UpgradePromptCard
+            badge={categoriesUpgrade.badge}
+            title={categoriesUpgrade.title}
+            description={categoriesUpgrade.description}
+            highlights={categoriesUpgrade.highlights}
+            actionLabel={categoriesUpgrade.actionLabel || 'Ver planes'}
+            onAction={() => navigate(categoriesUpgrade.route)}
+            compact
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {categories.map(c => (
@@ -60,7 +98,7 @@ export function CategoriesPage() {
                 <p className="font-medium text-text text-sm">{c.name}</p>
               </div>
             </div>
-            {canWrite && !c.is_default && (
+            {canManageCustomCategories && !c.is_default && (
               <button onClick={() => openEdit(c)} className="p-1.5 text-text-muted hover:text-primary cursor-pointer">
                 <Edit2 className="h-3.5 w-3.5" />
               </button>
