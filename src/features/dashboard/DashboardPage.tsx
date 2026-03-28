@@ -425,16 +425,14 @@ export function DashboardPage() {
         
         {primaryGoal ? (
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+            <div className="flex flex-col items-center justify-center text-center gap-6">
                <div className="min-w-0">
-                  <h2 className="text-lg font-bold mb-3 truncate" style={{ color: C.onSurface }}>
+                  <h2 className="text-lg font-bold mb-4 opacity-70" style={{ color: C.onSurface }}>
                     {primaryGoal.name}
                   </h2>
-                  <div className="grid grid-cols-4 mt-3">
-                    <span className="col-start-4 col-span-1 text-5xl lg:text-7xl font-bold tracking-tighter whitespace-nowrap" style={{ color: C.primary, fontFamily: C.fontHeadline }}>
-                      {formatCLP(primaryGoal.current_amount_clp)}
-                    </span>
-                  </div>
+                  <span className="text-5xl lg:text-7xl font-bold tracking-tighter block mb-6 px-12" style={{ color: C.primary, fontFamily: C.fontHeadline }}>
+                    {formatCLP(primaryGoal.current_amount_clp)}
+                  </span>
                </div>
                <Button variant="secondary" onClick={() => navigate('/app/metas')}>Administrar metas</Button>
             </div>
@@ -517,25 +515,23 @@ function M3SummaryCard({
     <button
       type="button"
       onClick={onClick}
-      className="w-full px-8 py-10 rounded-[2rem] text-left transition-all cursor-pointer group hover:shadow-ambient flex flex-col justify-between"
+      className="w-full px-8 py-12 rounded-[2rem] text-center transition-all cursor-pointer group hover:shadow-ambient flex flex-col items-center justify-center"
       style={{ 
         background: ts.bg
       }}
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col items-center gap-4 mb-8">
+        <div className="p-3 rounded-full transition-colors group-hover:bg-white/50" style={{ color: ts.color, background: ts.badge }}>
+          <Icon className="h-5 w-5 shrink-0" />
+        </div>
         <p className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-60" style={{ color: 'var(--color-s-text-muted)' }}>
           {label}
         </p>
-        <div className="p-2 rounded-xl transition-colors group-hover:bg-white/50" style={{ color: ts.color, background: ts.badge }}>
-          <Icon className="h-4 w-4 shrink-0" />
-        </div>
       </div>
-      <div className="mt-8 grid grid-cols-4">
-        <p className="col-start-4 col-span-1 text-5xl font-bold tracking-tighter whitespace-nowrap" style={{ color: ts.color, fontFamily: 'var(--font-headline)' }}>
-          {value}
-        </p>
-      </div>
-      <p className="mt-4 text-[11px] font-medium opacity-60" style={{ color: 'var(--color-s-text-muted)' }}>{note}</p>
+      <p className="text-5xl font-bold tracking-tighter" style={{ color: ts.color, fontFamily: 'var(--font-headline)' }}>
+        {value}
+      </p>
+      <p className="mt-6 text-[11px] font-medium opacity-60" style={{ color: 'var(--color-s-text-muted)' }}>{note}</p>
     </button>
   );
 }
@@ -552,11 +548,11 @@ function M3MetricRow({
     <button
       type="button"
       onClick={onClick}
-      className="grid w-full grid-cols-4 items-center gap-6 px-4 py-4 rounded-xl text-left transition-all cursor-pointer hover:bg-black/5"
+      className="flex w-full items-center justify-between gap-6 px-4 py-4 pr-[25%] rounded-xl text-left transition-all cursor-pointer hover:bg-black/5"
     >
-      <span className="col-span-3 text-sm font-medium opacity-70" style={{ color: 'var(--color-s-text-muted)' }}>{label}</span>
+      <span className="text-sm font-medium opacity-70" style={{ color: 'var(--color-s-text-muted)' }}>{label}</span>
       <span
-        className="col-span-1 text-sm font-bold tracking-tight whitespace-nowrap"
+        className="text-sm font-bold tracking-tight text-right flex-1 min-w-[120px]"
         style={{ color: emphasis ? 'var(--color-s-primary)' : 'var(--color-s-text)' }}
       >
         {value}
@@ -579,13 +575,13 @@ function M3ActionRow({
     <button
       type="button"
       onClick={onClick}
-      className="grid w-full grid-cols-4 items-start gap-6 px-4 py-4 rounded-xl text-left transition-all cursor-pointer hover:bg-black/5"
+      className="flex w-full items-start justify-between gap-6 px-4 py-4 pr-[25%] rounded-xl text-left transition-all cursor-pointer hover:bg-black/5"
     >
-      <span className="col-span-3 min-w-0 flex-1">
+      <span className="min-w-0 flex-1">
         <span className="block text-sm font-bold tracking-tight mb-1" style={{ color: 'var(--color-s-text)' }}>{label}</span>
         <span className="block text-[11px] leading-relaxed opacity-60" style={{ color: 'var(--color-s-text-muted)' }}>{detail}</span>
       </span>
-      <span className="col-span-1 shrink-0 text-xs font-bold uppercase tracking-wider whitespace-nowrap mt-1" style={{ color: valueColor }}>{value}</span>
+      <span className="shrink-0 text-xs font-bold uppercase tracking-wider text-right min-w-[100px] mt-1" style={{ color: valueColor }}>{value}</span>
     </button>
   );
 }
