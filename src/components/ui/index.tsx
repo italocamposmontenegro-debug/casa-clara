@@ -175,7 +175,7 @@ export function Modal({ open, onClose, children, size = 'md' }: ModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6 lg:p-10">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-md animate-in fade-in duration-500" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-md animate-in fade-in duration-500" />
       <div className={`relative bg-(--color-s-surface-lowest) rounded-[1.5rem] shadow-2xl w-full ${sizes[size]} max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 fade-in duration-300`}>
         <div className="relative p-10 lg:p-12 pb-2" />
         <div className="flex-1 overflow-y-auto px-14 lg:px-24 pb-24">
