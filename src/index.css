@@ -106,7 +106,7 @@ p, li, .font-body {
   border: none; /* No-Line Rule */
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-ambient);
-  padding: 2rem; /* Generous breathing room */
+  padding: 2.5rem; /* Increased for better editorial framing */
 }
 
 /* Tonal Layering Utility */

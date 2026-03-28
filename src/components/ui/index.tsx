@@ -409,7 +409,7 @@ export function StatCard({ label, value, subValue, trend, icon, onClick }: StatC
     </div>
   );
 
-  const cardClasses = "bg-(--color-s-surface-lowest) rounded-3xl p-7 transition-all duration-300 shadow-sm border border-transparent";
+  const cardClasses = "bg-(--color-s-surface-lowest) rounded-[2rem] p-8 lg:p-10 transition-all duration-300 shadow-sm border border-transparent";
 
   if (!onClick) {
     return (
@@ -554,7 +554,7 @@ export function Tabs({ tabs, activeTab, onChange }: {
         <button
           key={tab.id}
           onClick={() => onChange(tab.id)}
-          className={`flex-1 px-6 py-2.5 text-sm font-bold rounded-xl transition-all cursor-pointer ${
+          className={`flex-1 px-8 py-3.5 text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === tab.id
               ? 'bg-(--color-s-surface-lowest) text-(--color-s-text) shadow-sm'
               : 'text-(--color-s-text-muted) hover:text-(--color-s-text) hover:bg-black/5'

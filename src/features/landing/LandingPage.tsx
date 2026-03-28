@@ -142,7 +142,7 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-bg">
       <header className="sticky top-0 z-50 border-b border-border/80 bg-surface/88 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 lg:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-12">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white shadow-sm">
               <Home className="h-5 w-5" />
@@ -163,7 +163,7 @@ export function LandingPage() {
         </div>
       </header>
 
-      <section className="relative overflow-hidden px-4 pb-20 pt-16 lg:px-6 lg:pb-28 lg:pt-24">
+      <section className="relative overflow-hidden px-8 pb-20 pt-16 lg:px-16 lg:pb-32 lg:pt-28">
         <div className="absolute inset-0 opacity-80 bg-[radial-gradient(circle_at_top_left,_rgba(184,130,47,0.14),_transparent_30%),radial-gradient(circle_at_82%_14%,_rgba(47,115,133,0.12),_transparent_26%),linear-gradient(180deg,transparent,rgba(255,253,249,0.45))]" />
         <div className="relative mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div className="max-w-3xl">
@@ -207,7 +207,7 @@ export function LandingPage() {
             </div>
           </div>
 
-          <div className="paper-panel surface-glow rounded-[2.2rem] p-6 lg:p-8">
+          <div className="paper-panel surface-glow rounded-[2.5rem] p-8 lg:p-12 shadow-ambient">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.18em] text-text-light">Vista del hogar</p>
@@ -232,12 +232,12 @@ export function LandingPage() {
                 <Compass className="h-5 w-5 text-primary" />
               </div>
 
-              <div className="mt-5 space-y-3">
+              <div className="mt-8 space-y-6">
                 {PLAN_STAGES.map((stage, index) => (
-                  <div key={stage.tier} className="rounded-2xl border border-border bg-surface px-4 py-3 shadow-xs">
+                  <div key={stage.tier} className="rounded-3xl border border-border bg-surface px-6 py-5 shadow-xs transition-colors hover:bg-surface-muted">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-bg text-primary text-sm font-bold">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-bg text-primary text-sm font-bold shadow-sm">
                           {index + 1}
                         </div>
                         <div>
@@ -256,7 +256,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="border-y border-border bg-surface/86 px-4 py-16 lg:px-6">
+      <section className="border-y border-border bg-surface/86 px-8 py-20 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 max-w-3xl">
             <p className="eyebrow mb-4">La tensión cotidiana</p>
@@ -273,7 +273,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="px-4 py-18 lg:px-6">
+      <section className="px-8 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
@@ -318,7 +318,7 @@ export function LandingPage() {
               return (
                 <div
                   key={stage.tier}
-                  className={`surface-glow rounded-[2rem] border p-7 shadow-sm ${
+                  className={`surface-glow rounded-[2.5rem] border p-10 shadow-sm ${
                     isEssential
                       ? 'border-primary/30 bg-linear-to-br from-primary-bg/82 to-surface shadow-[0_20px_45px_rgba(23,59,69,0.10)] lg:-translate-y-2'
                       : isStrategic
@@ -353,7 +353,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="planes" className="px-4 py-20 lg:px-6">
+      <section id="planes" className="px-8 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="mb-12 text-center">
             <p className="eyebrow mx-auto mb-4">Precios</p>
@@ -366,7 +366,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="border-y border-border bg-surface/85 px-4 py-18 lg:px-6">
+      <section className="border-y border-border bg-surface/85 px-8 py-20 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 max-w-3xl">
             <p className="eyebrow mb-4">Qué cambia en cada etapa</p>
@@ -391,7 +391,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="px-4 py-20 lg:px-6">
+      <section className="px-8 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 max-w-3xl">
             <p className="eyebrow mb-4">Lo que se siente</p>
@@ -440,7 +440,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="px-4 py-20 lg:px-6">
+      <section className="px-8 py-24 lg:px-16">
         <div className="mx-auto max-w-5xl rounded-[2.2rem] border border-primary/20 bg-linear-to-br from-primary to-primary-light px-8 py-12 text-center text-white shadow-[0_24px_60px_rgba(23,59,69,0.18)]">
           <p className="text-[11px] uppercase tracking-[0.22em] text-white/70">{APP_NAME}</p>
           <h2 className="display-heading mt-4 text-4xl text-white">Empieza con claridad. Crece con más criterio cuando el hogar lo pida.</h2>
@@ -578,8 +578,8 @@ function HeroSignal({
   description: string;
 }) {
   return (
-    <div className="rounded-[1.6rem] border border-border bg-surface/88 px-4 py-4 shadow-xs">
-      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-bg text-primary">
+    <div className="rounded-[2rem] border border-border bg-surface/88 p-8 shadow-xs hover:shadow-ambient transition-all">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-bg text-primary shadow-sm">
         {icon}
       </div>
       <p className="mt-4 text-sm font-semibold text-text">{title}</p>
@@ -598,7 +598,7 @@ function EditorialCard({
   description: string;
 }) {
   return (
-    <div className="paper-panel rounded-[1.8rem] p-6">
+    <div className="paper-panel rounded-[2rem] p-10 lg:p-12 shadow-sm hover:shadow-ambient transition-all">
       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-bg text-primary">
         {icon}
       </div>
@@ -643,7 +643,7 @@ function MetricCard({
   }[tone];
 
   return (
-    <div className="rounded-[1.4rem] border border-border bg-white/80 p-4 shadow-xs">
+    <div className="rounded-[1.8rem] border border-border bg-white/80 p-8 shadow-xs hover:shadow-ambient transition-all">
       <div className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl ${toneClass}`}>{icon}</div>
       <p className="mt-4 text-xs uppercase tracking-[0.18em] text-text-light">{label}</p>
       <p className="mt-1 text-2xl font-bold text-text">{value}</p>
