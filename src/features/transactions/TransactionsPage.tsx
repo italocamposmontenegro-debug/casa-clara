@@ -399,74 +399,81 @@ export function TransactionsPage() {
           : (formType === 'income' ? 'Nuevo ingreso' : 'Nuevo gasto')}
         size="lg"
       >
-        <div className="space-y-4">
-          <div className="flex gap-2">
+        <div className="space-y-10">
+          <div className="flex gap-3 p-1.5 bg-black/5 rounded-[2rem]">
             {(['expense', 'income'] as const).map(t => (
               <button key={t} onClick={() => setFormType(t)}
-                className="flex-1 py-2.5 text-sm font-medium rounded-2xl transition-colors cursor-pointer"
+                className="flex-1 py-3 text-sm font-bold rounded-[1.6rem] transition-all cursor-pointer shadow-sm border border-transparent"
                 style={formType === t
                   ? t === 'income'
                     ? { background: C.successBg, color: C.successText, border: `1px solid ${C.successBg}` }
                     : { background: C.errorContainer, color: C.onErrorContainer, border: `1px solid ${C.errorContainer}` }
-                  : { background: C.surface, color: C.onSurfaceVariant, border: `1px solid ${C.outline}` }
+                  : { background: 'transparent', color: C.onSurfaceVariant, border: `1px solid transparent`, boxShadow: 'none' }
                 }
               >
                 {t === 'income' ? 'Ingreso' : 'Gasto'}
               </button>
             ))}
           </div>
-          <InputField
-            label={formType === 'income' ? 'Origen o concepto' : 'Descripción'}
-            value={formDesc}
-            onChange={e => setFormDesc(e.target.value)}
-            placeholder={formType === 'income' ? 'Ej: Sueldo' : 'Ej: Supermercado Líder'}
-          />
-          <InputField label="Monto (CLP)" type="number" value={formAmount}
-            onChange={e => setFormAmount(e.target.value)}
-            placeholder={formType === 'income' ? 'Ej: 1200000' : 'Ej: 45000'} />
-          <div className="grid grid-cols-2 gap-4">
-            {formType === 'expense' ? (
-              <SelectField label="Categoría" value={formCategory} onChange={setFormCategory} placeholder="Seleccionar"
-                options={availableCategories.map(c => ({ value: c.id, label: `${c.icon} ${c.name}` }))} />
-            ) : (
-              <InputField label="Fecha" type="date" value={formDate} onChange={e => setFormDate(e.target.value)} />
-            )}
-            {formType === 'expense' ? (
-              <InputField label="Fecha" type="date" value={formDate} onChange={e => setFormDate(e.target.value)} />
-            ) : (
-              <SelectField label="Destino" value={formScope} onChange={v => setFormScope(v as 'personal' | 'shared')}
-                options={[{ value: 'shared', label: 'Compartido' }, { value: 'personal', label: 'Personal' }]} />
-            )}
-          </div>
-          {canUseSplitManual ? (
-            <div className="grid grid-cols-2 gap-4">
-              <SelectField label={formType === 'income' ? '¿Quién lo recibió?' : '¿Quién pagó?'} value={formPaidBy} onChange={setFormPaidBy}
-                options={members.map(mb => ({ value: mb.id, label: mb.display_name }))} />
-              {formType === 'expense' ? (
-                <SelectField label="Alcance" value={formScope} onChange={v => setFormScope(v as 'personal' | 'shared')}
-                  options={[{ value: 'shared', label: 'Compartido' }, { value: 'personal', label: 'Personal' }]} />
-              ) : <div />}
-            </div>
-          ) : (
-            <AlertBanner
-              type="info"
-              message={formType === 'income'
-                ? 'El ingreso quedará asociado al miembro que lo registra.'
-                : 'El gasto quedará asociado al miembro que lo registra y como compartido por defecto.'}
+          
+          <div className="space-y-6">
+            <InputField
+              label={formType === 'income' ? 'Origen o concepto' : 'Descripción'}
+              value={formDesc}
+              onChange={e => setFormDesc(e.target.value)}
+              placeholder={formType === 'income' ? 'Ej: Sueldo' : 'Ej: Supermercado Líder'}
             />
-          )}
-          {formType === 'expense' && canUseSplitManual && (
-            <SelectField label="Tipo de gasto" value={formExpenseType} onChange={v => setFormExpenseType(v as 'fixed' | 'variable')}
-              options={[{ value: 'variable', label: 'Variable' }, { value: 'fixed', label: 'Fijo' }]} />
-          )}
-          <InputField label="Notas (opcional)" value={formNotes}
-            onChange={e => setFormNotes(e.target.value)} placeholder="Notas adicionales..." />
+            <InputField label="Monto (CLP)" type="number" value={formAmount}
+              onChange={e => setFormAmount(e.target.value)}
+              placeholder={formType === 'income' ? 'Ej: 1200000' : 'Ej: 45000'} />
+            
+            <div className="grid grid-cols-2 gap-6">
+              {formType === 'expense' ? (
+                <SelectField label="Categoría" value={formCategory} onChange={setFormCategory} placeholder="Seleccionar"
+                  options={availableCategories.map(c => ({ value: c.id, label: `${c.icon} ${c.name}` }))} />
+              ) : (
+                <InputField label="Fecha" type="date" value={formDate} onChange={e => setFormDate(e.target.value)} />
+              )}
+              {formType === 'expense' ? (
+                <InputField label="Fecha" type="date" value={formDate} onChange={e => setFormDate(e.target.value)} />
+              ) : (
+                <SelectField label="Destino" value={formScope} onChange={v => setFormScope(v as 'personal' | 'shared')}
+                  options={[{ value: 'shared', label: 'Compartido' }, { value: 'personal', label: 'Personal' }]} />
+              )}
+            </div>
+
+            {canUseSplitManual ? (
+              <div className="grid grid-cols-2 gap-6">
+                <SelectField label={formType === 'income' ? '¿Quién lo recibió?' : '¿Quién pagó?'} value={formPaidBy} onChange={setFormPaidBy}
+                  options={members.map(mb => ({ value: mb.id, label: mb.display_name }))} />
+                {formType === 'expense' ? (
+                  <SelectField label="Alcance" value={formScope} onChange={v => setFormScope(v as 'personal' | 'shared')}
+                    options={[{ value: 'shared', label: 'Compartido' }, { value: 'personal', label: 'Personal' }]} />
+                ) : <div />}
+              </div>
+            ) : (
+              <AlertBanner
+                type="info"
+                message={formType === 'income'
+                  ? 'El ingreso quedará asociado al miembro que lo registra.'
+                  : 'El gasto quedará asociado al miembro que lo registra y como compartido por defecto.'}
+              />
+            )}
+
+            {formType === 'expense' && canUseSplitManual && (
+              <SelectField label="Tipo de gasto" value={formExpenseType} onChange={v => setFormExpenseType(v as 'fixed' | 'variable')}
+                options={[{ value: 'variable', label: 'Variable' }, { value: 'fixed', label: 'Fijo' }]} />
+            )}
+            
+            <InputField label="Notas (opcional)" value={formNotes}
+              onChange={e => setFormNotes(e.target.value)} placeholder="Notas adicionales..." />
+          </div>
           {editingTx?.is_recurring_instance && (
             <p className="text-xs" style={{ color: C.onSurfaceVariant }}>
               Si este gasto viene de una recurrencia o pago programado, los cambios mantendrán ese enlace actualizado.
             </p>
           )}
-          <div className="flex items-center justify-between pt-4 border-t border-border/40 mt-2">
+          <div className="flex items-center justify-between pt-10 border-t border-border/40 mt-10">
             <div>
               {editingTx && (
                 <button
