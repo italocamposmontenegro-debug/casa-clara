@@ -319,8 +319,8 @@ export function AppLayout() {
           </div>
         </header>
 
-        {/* The "Breath" Rule: Top-of-page margins (spacing-16 = 5.5rem / 4rem used for balance) */}
-        <div className="w-full max-w-(--breakpoint-2xl) mx-auto pt-8 lg:pt-16 pb-12 px-6 lg:px-12">
+        {/* The "Breath" Rule: Top-of-page margins (spacing-20 = 7.5rem / 5rem used for balance) */}
+        <div className="w-full max-w-(--breakpoint-2xl) mx-auto pt-8 lg:pt-16 pb-12 px-8 lg:px-20">
           
           {/* Restricted mode banner */}
           {isRestricted && ctaMessage && (

@@ -334,20 +334,22 @@ export function TransactionsPage() {
                     <td className="py-3 px-4 text-xs" style={{ color: C.onSurfaceVariant }}>
                       {formatDate(tx.occurred_on)}
                     </td>
-                    <td className="py-3 px-4">
-                      <span className="font-medium" style={{ color: C.onSurface }}>{tx.description}</span>
-                      {tx.scope === 'shared' && (
-                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full font-medium"
-                          style={{ background: C.primaryContainer, color: C.onPrimaryContainer }}>
-                          compartido
-                        </span>
-                      )}
-                      {tx.is_recurring_instance && (
-                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full font-medium"
-                          style={{ background: C.secondaryContainer, color: C.onSecondaryContainer }}>
-                          recurrente
-                        </span>
-                      )}
+                    <td className="py-3 px-4 min-w-[200px]">
+                      <div className="flex items-center flex-wrap gap-3">
+                        <span className="font-medium shrink-0" style={{ color: C.onSurface }}>{tx.description}</span>
+                        {tx.scope === 'shared' && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
+                            style={{ background: C.primaryContainer, color: C.onPrimaryContainer }}>
+                            compartido
+                          </span>
+                        )}
+                        {tx.is_recurring_instance && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-border"
+                            style={{ background: C.secondaryContainer, color: C.onSurfaceVariant }}>
+                            recurrente
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 px-4 text-sm" style={{ color: C.onSurfaceVariant }}>
                       {getCategoryIcon(tx.category_id)} {getCategoryName(tx.category_id)}
@@ -371,16 +373,11 @@ export function TransactionsPage() {
                     </td>
                     {canWrite && (
                       <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end">
                           <button type="button" onClick={() => openEdit(tx)}
-                            className="p-1.5 rounded-xl transition hover:bg-black/10 cursor-pointer"
-                            style={{ color: C.onSurfaceVariant }} title="Editar">
-                            <Edit2 className="h-3.5 w-3.5" />
-                          </button>
-                          <button type="button" onClick={() => setDeleteId(tx.id)}
-                            className="p-1.5 rounded-xl transition hover:bg-black/10 cursor-pointer"
-                            style={{ color: C.error }} title="Eliminar">
-                            <Trash2 className="h-3.5 w-3.5" />
+                            className="p-2 rounded-xl transition hover:bg-black/10 cursor-pointer"
+                            style={{ color: C.primary }} title="Editar">
+                            <Edit2 className="h-4 w-4" />
                           </button>
                         </div>
                       </td>
@@ -469,13 +466,27 @@ export function TransactionsPage() {
               Si este gasto viene de una recurrencia o pago programado, los cambios mantendrán ese enlace actualizado.
             </p>
           )}
-          <div className="flex gap-3 justify-end pt-2">
-            <Button variant="secondary" onClick={() => setShowForm(false)}>Cancelar</Button>
-            <Button onClick={handleSave} loading={saving}>
-              {editingTx
-                ? (formType === 'income' ? 'Guardar ingreso' : 'Guardar gasto')
-                : (formType === 'income' ? 'Crear ingreso' : 'Crear gasto')}
-            </Button>
+          <div className="flex items-center justify-between pt-4 border-t border-border/40 mt-2">
+            <div>
+              {editingTx && (
+                <button
+                  type="button"
+                  onClick={() => { setShowForm(false); setDeleteId(editingTx.id); }}
+                  className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-danger/70 hover:text-danger hover:bg-danger/5 rounded-xl transition-colors cursor-pointer"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Eliminar movimiento
+                </button>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <Button variant="secondary" onClick={() => setShowForm(false)}>Cancelar</Button>
+              <Button onClick={handleSave} loading={saving}>
+                {editingTx
+                  ? (formType === 'income' ? 'Guardar ingreso' : 'Guardar gasto')
+                  : (formType === 'income' ? 'Crear ingreso' : 'Crear gasto')}
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>
