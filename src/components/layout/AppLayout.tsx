@@ -193,9 +193,9 @@ export function AppLayout() {
                 <Home className="h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <h1 className="font-bold text-base truncate tracking-tight"
+                <h1 className="font-bold text-[14px] leading-tight tracking-tight"
                   style={{ fontFamily: C.fontHeadline, color: C.onSurface }}>
-                  {APP_NAME}
+                  Compás<br />Hogar
                 </h1>
                 <p className="text-[11px] uppercase tracking-[0.12em] font-bold" style={{ color: C.onSurfaceVariant }}>
                   {household?.name || 'Mi hogar'}
@@ -311,10 +311,10 @@ export function AppLayout() {
                 style={{ background: C.primary, color: C.onPrimary }}>
                 <Home className="h-4 w-4" />
               </div>
-              <span className="block text-base font-bold tracking-tight"
-                style={{ fontFamily: C.fontHeadline, color: C.onSurface }}>
-                {APP_NAME}
-              </span>
+                <span className="block text-[14px] leading-tight font-bold tracking-tight"
+                  style={{ fontFamily: C.fontHeadline, color: C.onSurface }}>
+                  Compás<br />Hogar
+                </span>
             </div>
           </div>
         </header>

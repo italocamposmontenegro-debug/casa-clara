@@ -76,15 +76,18 @@ export function GuidedClosePage() {
 
   if (loading) return <LoadingSpinner />;
 
+
+  if (loading) return <LoadingSpinner />;
+
   if (finished) {
     return (
       <div className="max-w-2xl mx-auto text-center py-12">
         <div className="h-20 w-20 bg-success-bg rounded-full flex items-center justify-center mx-auto mb-6">
           <CheckCircle className="h-10 w-10 text-success" />
         </div>
-        <h1 className="text-3xl font-bold text-text mb-4">¡Mes cerrado con éxito!</h1>
+        <h1 className="text-2xl font-bold text-text mb-2">Mes cerrado</h1>
         <p className="text-text-muted mb-8">
-          Has guardado el resumen de este mes. Puedes consultarlo en la sección de Resumen en cualquier momento.
+          Resumen guardado correctamente.
         </p>
         <Button onClick={() => window.location.href = '/app/dashboard'}>Ir al Dashboard</Button>
       </div>
@@ -93,8 +96,8 @@ export function GuidedClosePage() {
 
   return (
     <FeatureGate feature="monthly_close_simple">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold text-text mb-6">Cierre mensual guiado</h1>
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-2xl font-bold text-text mb-6">Cierre mensual</h1>
         {msg && <div className="mb-4"><AlertBanner type="danger" message={msg} onClose={() => setMsg('')} /></div>}
         {hasFeature('guided_close_advanced') && (
           <div className="mb-4">
@@ -107,11 +110,6 @@ export function GuidedClosePage() {
         
         {step === 1 && (
           <div className="space-y-6">
-            <AlertBanner 
-              type="info" 
-              message="Revisaremos tus totales de este mes antes de cerrar el periodo."
-            />
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <StatCard label="Ingresos totales" value={formatCLP(totals.income)} icon={<Wallet className="text-success" />} />
               <StatCard label="Gastos totales" value={formatCLP(totals.expenses)} icon={<PieChart className="text-danger" />} />
@@ -119,16 +117,16 @@ export function GuidedClosePage() {
 
             <Card>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-lg font-semibold">Balance final</span>
+                <span className="text-sm font-bold uppercase tracking-widest opacity-60">Balance final</span>
                 <span className={`text-xl font-bold ${totals.balance >= 0 ? 'text-success' : 'text-danger'}`}>
                   {formatCLP(totals.balance)}
                 </span>
               </div>
               <p className="text-sm text-text-muted mb-6">
-                Este es el monto que queda (o falta) después de todos tus gastos compartidos del mes.
+                Monto remanente tras procesar todos los gastos compartidos.
               </p>
               <Button className="w-full" onClick={() => setStep(2)}>
-                Confirmar y continuar <ArrowRight className="h-4 w-4" />
+                Continuar <ArrowRight className="h-4 w-4" />
               </Button>
             </Card>
           </div>
@@ -140,8 +138,8 @@ export function GuidedClosePage() {
               <div className="text-center py-6">
                 <ClipboardCheck className="h-12 w-12 text-primary mx-auto mb-4" />
                 <h2 className="text-xl font-bold mb-2">¿Todo en orden?</h2>
-                <p className="text-text-muted mb-8 max-w-sm mx-auto">
-                  Al cerrar el mes, guardaremos o actualizaremos su resumen histórico. Si ajustas movimientos más tarde, podrás volver a cerrar el mes.
+                <p className="text-sm text-text-muted mb-8 max-w-sm mx-auto">
+                  Al confirmar, se guardará una foto de este mes en el historial.
                 </p>
                 <div className="flex gap-3 justify-center">
                   <Button variant="secondary" onClick={() => setStep(1)}>Atrás</Button>

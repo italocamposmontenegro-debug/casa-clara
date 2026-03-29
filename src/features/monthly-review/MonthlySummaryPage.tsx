@@ -71,7 +71,7 @@ export function MonthlySummaryPage() {
             action={{ label: 'Registrar gasto', onClick: () => navigate('/app/movimientos?create=expense') }}
           />
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-6">
             {expensesByCategory.map(c => (
               <div key={c.id}>
                 <div className="flex justify-between text-sm mb-1">

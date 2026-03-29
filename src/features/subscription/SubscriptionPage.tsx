@@ -218,26 +218,26 @@ export function SubscriptionPage() {
                 {status ? SUBSCRIPTION_STATUS_LABELS[status] : 'Plan Free'}
               </span>
             </div>
-            <h1 className="display-heading mt-5 text-4xl text-text lg:text-5xl">Plan y dirección del hogar</h1>
+            <h1 className="display-heading mt-5 text-4xl text-text lg:text-5xl">Gasto y dirección</h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-text-muted">
-              {currentPlanPromise} Desde aquí ves en qué etapa está el hogar, qué desbloquea cada plan y cuándo tiene sentido subir de nivel para ganar más seguimiento o más visión.
+              Gestiona tu plan y el crecimiento del hogar.
             </p>
 
             <div className="mt-7 grid gap-4 md:grid-cols-3">
               <SubscriptionSignal
                 label="Plan actual"
                 value={currentPlanName}
-                description={planTier === 'free' ? 'Visibilidad básica y hábito inicial.' : PUBLIC_PLAN_INFO[planTier].promise}
+                description={planTier === 'free' ? 'Visibilidad básica.' : PUBLIC_PLAN_INFO[planTier].promise}
               />
               <SubscriptionSignal
                 label="Ciclo"
                 value={isActivePaidPlan ? currentCycleLabel : '—'}
-                description={isActivePaidPlan ? 'La renovacion sigue este ciclo.' : 'No hay ciclo de cobro activo.'}
+                description={isActivePaidPlan ? 'Ciclo de renovación.' : 'Sin ciclo activo.'}
               />
               <SubscriptionSignal
                 label="Precio"
                 value={subscription?.price_amount_clp ? formatCLP(subscription.price_amount_clp) : 'Gratis'}
-                description={subscription?.current_period_end ? `Vigente hasta ${formatDateLong(subscription.current_period_end)}` : 'Puedes empezar gratis y subir despues.'}
+                description={subscription?.current_period_end ? `Hasta ${formatDateLong(subscription.current_period_end)}` : 'Empieza gratis y escala luego.'}
               />
             </div>
 
@@ -268,7 +268,7 @@ export function SubscriptionPage() {
                     <p className="text-xs uppercase tracking-[0.18em] text-text-light">Etapa actual del hogar</p>
                     <p className="mt-2 text-base font-semibold text-text">{currentPlanPromise}</p>
                   </div>
-                  <Sparkles className="h-5 w-5 text-primary" />
+                  <Sparkles className="h-4 w-4 text-primary" />
                 </div>
                 <ul className="mt-4 space-y-2">
                   {PUBLIC_PLAN_INFO[planTier].featureHighlights.slice(0, 3).map((feature) => (
@@ -281,12 +281,12 @@ export function SubscriptionPage() {
               </div>
 
               <div className="rounded-[1.5rem] border border-border bg-surface px-5 py-5 shadow-xs">
-                <p className="text-xs uppercase tracking-[0.18em] text-text-light">Cómo se gestiona</p>
-                <p className="mt-2 text-base font-semibold text-text">{isOwner ? 'Owner del hogar' : 'Solo el owner'}</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-text-light">Gestión</p>
+                <p className="mt-2 text-base font-semibold text-text">{isOwner ? 'Editor del hogar' : 'Solo lectura'}</p>
                 <p className="mt-2 text-sm leading-6 text-text-muted">
                   {isOwner
-                    ? `Desde esta pantalla puedes subir, bajar o sincronizar la suscripción de ${APP_NAME} sin salir del flujo del hogar.`
-                    : `Puedes revisar el plan activo y su valor, pero el cambio de suscripción lo hace el owner del hogar.`}
+                    ? `Gestión total de la suscripción.`
+                    : `Solo el owner puede modificar el plan.`}
                 </p>
               </div>
             </div>
@@ -311,25 +311,25 @@ export function SubscriptionPage() {
             </h2>
             <p className="mt-3 text-sm leading-7 text-text-muted">
               {planTier === 'free'
-                ? 'El siguiente salto natural es Esencial cuando el hogar ya necesita categorías propias, seguimiento más claro y más de una meta para sostener el mes.'
+                ? 'Sube a Esencial para categorías y múltiples metas.'
                 : planTier === 'essential'
-                  ? 'El siguiente salto natural es Estratégico cuando ya no basta con registrar: conviene anticiparse, comparar y decidir con más contexto.'
-                  : 'Ahora el foco no está en subir de plan, sino en aprovechar mejor la proyección, las alertas y las recomendaciones para conducir el hogar con continuidad.'}
+                  ? 'Sube a Estratégico para anticipación y proyección.'
+                  : 'Proyecciones y alertas para conducir tu hogar.'}
             </p>
           </div>
           <div className="rounded-[1.4rem] border border-border bg-bg/75 px-5 py-4 lg:w-80">
-            <p className="text-xs uppercase tracking-[0.18em] text-text-light">Siguiente paso útil</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-text-light">Siguiente paso</p>
             <p className="mt-2 text-base font-semibold text-text">
               {planTier === 'free'
-                ? 'Subir a Esencial cuando el mes ya pide más seguimiento.'
+                ? 'Subir a Esencial para más seguimiento.'
                 : planTier === 'essential'
-                  ? 'Subir a Estratégico cuando el hogar necesita anticiparse.'
-                  : 'Mantener continuidad y usar mejor las señales del mes.'}
+                  ? 'Subir a Estratégico para más visión.'
+                  : 'Mantener continuidad del hogar.'}
             </p>
             <p className="mt-2 text-sm leading-6 text-text-muted">
               {planTier === 'strategic'
-                ? 'Revisa con frecuencia las alertas, la proyección y la comparación mensual para convertir continuidad en criterio.'
-                : 'La suscripción no es solo un cobro. Es la etapa desde la que el hogar puede ordenar mejor o decidir mejor.'}
+                ? 'Revisa proyección y alertas para decidir con criterio.'
+                : 'La suscripción es la etapa de madurez de tu hogar.'}
             </p>
           </div>
         </div>
@@ -366,8 +366,8 @@ export function SubscriptionPage() {
       {planTier === 'free' && (
         <UpgradePromptCard
           badge="Disponible al subir de plan"
-          title="Free sirve para partir. El siguiente salto es ordenar el mes."
-          description="Sube a Esencial si ya necesitas categorías propias, reparto y múltiples metas. Sube a Estratégico si además quieres comparación, proyección y alertas."
+          title="Sube de plan para ordenar el mes."
+          description="Usa Esencial para categorías y metas reales, o Estratégico para comparación y proyección."
           highlights={['Categorías personalizadas', 'Calendario completo', 'Comparación y proyección']}
           actionLabel="Ver planes"
           onAction={() => document.getElementById('planes-disponibles')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
@@ -391,7 +391,7 @@ export function SubscriptionPage() {
               {isActivePaidPlan ? 'Cambia tu plan' : 'Elige un plan para comenzar'}
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-text-muted">
-              Free sirve para empezar con claridad. Esencial ordena el funcionamiento cotidiano del hogar. Estratégico añade anticipación, alertas y mejor criterio para decidir.
+              Elige la etapa que mejor se ajuste a tu gestión.
             </p>
           </div>
 
@@ -404,7 +404,7 @@ export function SubscriptionPage() {
               <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${annual ? 'translate-x-6.5' : 'translate-x-0.5'}`} />
             </button>
             <span className={`text-sm ${annual ? 'font-semibold text-text' : 'text-text-muted'}`}>
-              Anual <span className="text-xs text-success">Mejor precio</span>
+              Anual <span className="text-xs text-success">Ahorro</span>
             </span>
           </div>
         </div>

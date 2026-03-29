@@ -391,7 +391,7 @@ export function StatCard({ label, value, subValue, trend, icon, onClick }: StatC
         <span className="text-[10px] font-black uppercase tracking-[0.15em] text-(--color-s-text-muted) opacity-60">{label}</span>
         {icon && <span className="text-(--color-s-text-muted) opacity-40 group-hover:opacity-80 transition-opacity">{icon}</span>}
       </div>
-      <p className="text-3xl font-bold text-(--color-s-text) tracking-tight mb-2" style={{ fontFamily: 'var(--font-headline)' }}>
+      <p className="text-xl font-bold text-(--color-s-text) tracking-tight mb-2" style={{ fontFamily: 'var(--font-headline)' }}>
         {value}
       </p>
       {subValue && (

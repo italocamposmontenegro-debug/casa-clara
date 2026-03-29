@@ -11,6 +11,29 @@ import { trackEvent } from '../../lib/analytics';
 import { validateEmail, validatePassword, validateRequired } from '../../utils/validators';
 import { Home, ArrowLeft, Sparkles, Shield, Users } from 'lucide-react';
 
+const AUTH_LAYOUT_TEXTS = {
+  login: {
+    eyebrow: 'Bienvenido',
+    title: 'Retoma el orden del hogar.',
+    description: 'Accede para ver el estado de tus cuentas y metas.',
+  },
+  register: {
+    eyebrow: 'Comienza hoy',
+    title: 'Crea tu hogar con claridad.',
+    description: 'Un solo espacio para ingresos, gastos y acuerdos.',
+  },
+  forgotPassword: {
+    eyebrow: 'Recuperación',
+    title: 'Recupera tu acceso.',
+    description: 'Te enviaremos un enlace para recuperar tu clave.',
+  },
+  resetPassword: {
+    eyebrow: 'Nueva clave',
+    title: 'Actualiza tu seguridad.',
+    description: 'Elige una contraseña nueva para tu cuenta.',
+  },
+};
+
 function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-bg px-4 py-8 lg:px-6 lg:py-10">
@@ -111,8 +134,8 @@ export function LoginPage() {
 
   return (
     <AuthLayout>
-      <h2 className="text-xl font-bold text-text mb-2">Inicia sesión</h2>
-      <p className="text-sm text-text-muted mb-6">Entra al espacio donde tu hogar ordena acuerdos, pagos y metas.</p>
+      <h2 className="text-xl font-bold text-text mb-2">{AUTH_LAYOUT_TEXTS.login.title}</h2>
+      <p className="text-sm text-text-muted mb-6">{AUTH_LAYOUT_TEXTS.login.description}</p>
 
       {error && <div className="mb-4"><AlertBanner type="danger" message={error} /></div>}
 
@@ -192,7 +215,7 @@ export function RegisterPage() {
           </div>
           <h2 className="text-xl font-bold text-text mb-2">Revisa tu correo</h2>
           <p className="text-sm text-text-muted mb-6">
-            Te enviamos un enlace de verificación a <strong>{email}</strong> para activar tu acceso y empezar a ordenar el hogar en {APP_NAME}.
+            Te enviamos un enlace de verificación a <strong>{email}</strong>.
           </p>
           <Link to={`/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`} className="text-primary text-sm font-medium hover:text-primary-light">
             Ir a iniciar sesión
@@ -204,8 +227,8 @@ export function RegisterPage() {
 
   return (
     <AuthLayout>
-      <h2 className="text-xl font-bold text-text mb-2">Crea tu cuenta</h2>
-      <p className="text-sm text-text-muted mb-6">Crea el espacio compartido desde donde el hogar puede ordenarse con más claridad.</p>
+      <h2 className="text-xl font-bold text-text mb-2">{AUTH_LAYOUT_TEXTS.register.title}</h2>
+      <p className="text-sm text-text-muted mb-6">{AUTH_LAYOUT_TEXTS.register.description}</p>
 
       {error && <div className="mb-4"><AlertBanner type="danger" message={error} /></div>}
 
@@ -263,13 +286,13 @@ export function ForgotPasswordPage() {
         <div className="text-center">
           <h2 className="text-xl font-bold text-text mb-2">Revisa tu correo</h2>
           <p className="text-sm text-text-muted">
-            Si existe una cuenta con <strong>{email}</strong>, recibirás un enlace para recuperar tu acceso sin perder la referencia de tu hogar.
+            Si existe una cuenta con <strong>{email}</strong>, recibirás un enlace para recuperar tu acceso.
           </p>
         </div>
       ) : (
         <>
-          <h2 className="text-xl font-bold text-text mb-2">Recuperar contraseña</h2>
-          <p className="text-sm text-text-muted mb-6">Te enviaremos un enlace para recuperar tu acceso sin perder la referencia de tu hogar.</p>
+          <h2 className="text-xl font-bold text-text mb-2">{AUTH_LAYOUT_TEXTS.forgotPassword.title}</h2>
+          <p className="text-sm text-text-muted mb-6">{AUTH_LAYOUT_TEXTS.forgotPassword.description}</p>
 
           {error && <div className="mb-4"><AlertBanner type="danger" message={error} /></div>}
 
@@ -315,8 +338,8 @@ export function ResetPasswordPage() {
 
   return (
     <AuthLayout>
-      <h2 className="text-xl font-bold text-text mb-2">Nueva contraseña</h2>
-      <p className="text-sm text-text-muted mb-6">Define una nueva contraseña para volver a entrar con seguridad.</p>
+      <h2 className="text-xl font-bold text-text mb-2">{AUTH_LAYOUT_TEXTS.resetPassword.title}</h2>
+      <p className="text-sm text-text-muted mb-6">{AUTH_LAYOUT_TEXTS.resetPassword.description}</p>
 
       {error && <div className="mb-4"><AlertBanner type="danger" message={error} /></div>}
 
@@ -346,7 +369,7 @@ export function VerifyEmailPage() {
         </div>
         <h2 className="text-xl font-bold text-text mb-2">Correo verificado</h2>
         <p className="text-sm text-text-muted mb-6">
-          Tu cuenta ya está lista. Ahora puedes entrar a {APP_NAME} y empezar a conducir el hogar con más claridad.
+          Tu cuenta ya está lista. Ya puedes entrar a {APP_NAME}.
         </p>
         <Button onClick={() => navigate(redirectTarget)}>Iniciar sesión</Button>
       </div>

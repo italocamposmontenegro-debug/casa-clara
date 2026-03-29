@@ -5,7 +5,7 @@
 import type { SubscriptionStatus } from './plans';
 
 export const APP_NAME = 'Compás Hogar';
-export const APP_TAGLINE = 'Claridad compartida para conducir el hogar.';
+export const APP_TAGLINE = 'Gestión financiera para tu hogar.';
 export const CURRENCY = 'CLP';
 export const TIMEZONE = 'America/Santiago';
 export const LOCALE = 'es-CL';
@@ -139,4 +139,16 @@ export const SPLIT_RULE_DESCRIPTIONS: Record<SplitRuleType, string> = {
   proportional: 'El aporte se calcula en proporción al ingreso de cada miembro.',
   fixed_amount: 'Cada miembro aporta un monto fijo mensual al gasto compartido.',
   custom_percent: 'Tú defines qué porcentaje aporta cada miembro.',
+};
+
+// ============================================
+// Tooltips de métricas
+// ============================================
+export const METRIC_TOOLTIPS: Record<string, string> = {
+  monthly_income: 'Total de ingresos confirmados para este mes.',
+  monthly_balance: 'Dinero disponible después de gastos y metas.',
+  monthly_spending: 'Suma de gastos registrados hasta hoy.',
+  monthly_savings: 'Monto destinado a tus metas este mes.',
+  household_goals: 'Progreso promedio hacia tus objetivos.',
+  pending_payments: 'Cuentas o compromisos por cerrar.',
 };

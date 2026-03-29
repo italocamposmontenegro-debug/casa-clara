@@ -237,7 +237,7 @@ export function TransactionsPage() {
 
   const getMemberName   = (id: string)       => members.find(mb => mb.id === id)?.display_name || '—';
   const getCategoryName = (id: string | null) => categories.find(c => c.id === id)?.name || '—';
-  const getCategoryIcon = (id: string | null) => categories.find(c => c.id === id)?.icon || '📦';
+
 
   const [y, m] = filterMonth.split('-').map(Number);
 
@@ -250,8 +250,8 @@ export function TransactionsPage() {
           <h1 className="text-3xl font-semibold" style={{ fontFamily: C.fontHeadline, color: C.onSurface }}>
             Movimientos
           </h1>
-          <p className="mt-1 text-sm" style={{ color: C.onSurfaceVariant }}>
-            Aquí se arma la lectura real del mes. {formatMonthYear(y, m)}
+          <p className="mt-1 text-xs opacity-50" style={{ color: C.onSurfaceVariant }}>
+            {formatMonthYear(y, m)}
           </p>
         </div>
         {canWrite && (
@@ -259,7 +259,7 @@ export function TransactionsPage() {
             icon={<Plus className="h-4 w-4" />}
             onClick={openCreate}
           >
-            Nuevo
+            +
           </Button>
         )}
       </div>
@@ -312,23 +312,23 @@ export function TransactionsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ borderBottom: `1px solid ${C.outline}` }}>
+                <tr className="border-b border-transparent">
                   {['Fecha', 'Descripción', 'Categoría', 'Pagó', 'Tipo', 'Monto'].map(h => (
                     <th
                       key={h}
-                      className={`py-3 px-4 font-medium text-xs uppercase tracking-wider ${h === 'Monto' ? 'text-right' : 'text-left'}`}
+                      className={`py-4 px-6 font-medium text-[10px] uppercase tracking-[0.15em] ${h === 'Monto' ? 'text-right' : 'text-left'}`}
                       style={{ color: C.onSurfaceVariant }}
                     >
                       {h}
                     </th>
                   ))}
-                  {canWrite && <th className="py-3 px-4" />}
+                  {canWrite && <th className="py-4 px-6" />}
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(tx => (
-                  <tr key={tx.id} className="transition-colors hover:bg-black/5" style={{ borderBottom: `1px solid ${C.outline}` }}>
-                    <td className="py-3 px-4 text-xs" style={{ color: C.onSurfaceVariant }}>
+                  <tr key={tx.id} className="transition-colors hover:bg-black/5">
+                    <td className="py-4 px-6 text-[11px]" style={{ color: C.onSurfaceVariant }}>
                       {formatDate(tx.occurred_on)}
                     </td>
                     <td className="py-3 px-4 min-w-[200px]">
@@ -348,14 +348,14 @@ export function TransactionsPage() {
                         )}
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm" style={{ color: C.onSurfaceVariant }}>
-                      {getCategoryIcon(tx.category_id)} {getCategoryName(tx.category_id)}
+                    <td className="py-4 px-6 text-[13px]" style={{ color: C.onSurfaceVariant }}>
+                      {getCategoryName(tx.category_id)}
                     </td>
-                    <td className="py-3 px-4 text-sm" style={{ color: C.onSurfaceVariant }}>
+                    <td className="py-4 px-6 text-sm" style={{ color: C.onSurfaceVariant }}>
                       {getMemberName(tx.paid_by_member_id)}
                     </td>
-                    <td className="py-3 px-4">
-                      <span className="text-xs px-2.5 py-1 rounded-full font-medium"
+                    <td className="py-4 px-6">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
                         style={tx.type === 'income'
                           ? { background: C.successBg, color: C.successText }
                           : { background: C.errorContainer, color: C.onErrorContainer }
@@ -364,7 +364,7 @@ export function TransactionsPage() {
                         {tx.type === 'income' ? 'Ingreso' : 'Gasto'}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right font-semibold"
+                    <td className="py-4 px-6 text-right font-medium text-sm"
                       style={{ color: tx.type === 'income' ? C.successText : C.onSurface }}>
                       {tx.type === 'income' ? '+' : '-'}{formatCLP(tx.amount_clp)}
                     </td>
@@ -518,7 +518,7 @@ function TxSummaryCard({ label, value, tone }: { label: string; value: string; t
   return (
     <div className="px-5 py-5 flex flex-col justify-center" style={{ background: s.bg }}>
       <p className="text-[10px] uppercase tracking-widest font-bold opacity-70" style={{ color: 'var(--color-s-text-light)' }}>{label}</p>
-      <p className="mt-2 text-3xl font-light tracking-tight" style={{ fontFamily: 'var(--font-headline)', color: s.color }}>{value}</p>
+      <p className="mt-2 text-xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-headline)', color: s.color }}>{value}</p>
     </div>
   );
 }

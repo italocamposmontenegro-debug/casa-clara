@@ -180,12 +180,9 @@ export function GoalsPage() {
       {/* ── Page header ──────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold" style={{ fontFamily: C.fontHeadline, color: C.onSurface }}>
+          <h1 className="text-2xl font-bold" style={{ fontFamily: C.fontHeadline, color: C.onSurface }}>
             Metas de ahorro
           </h1>
-          <p className="mt-1 text-sm" style={{ color: C.onSurfaceVariant }}>
-            Una meta visible convierte el excedente del mes en dirección compartida.
-          </p>
         </div>
         {canWrite && (
           <button
@@ -196,7 +193,6 @@ export function GoalsPage() {
             style={{ background: C.primary, color: C.onPrimary }}
           >
             <Plus className="h-4 w-4" />
-            Nueva meta
           </button>
         )}
       </div>
@@ -231,7 +227,7 @@ export function GoalsPage() {
       {/* ── Primary goal hero card ────────────────────────── */}
       {primaryGoal && (
         <div
-          className="lg:p-8 p-6"
+          className="lg:p-6 p-5 border border-dashed border-black/10 rounded-3xl"
           style={{ background: C.surface }}
         >
           <div className="flex items-start justify-between gap-4">
@@ -242,7 +238,7 @@ export function GoalsPage() {
                   Meta principal
                 </span>
               </div>
-              <h2 className="text-3xl font-light tracking-tight mt-1" style={{ fontFamily: C.fontHeadline, color: C.primary }}>
+              <h2 className="text-2xl font-bold tracking-tight mt-1" style={{ fontFamily: C.fontHeadline, color: C.primary }}>
                 {primaryGoal.name}
               </h2>
             </div>
@@ -262,7 +258,7 @@ export function GoalsPage() {
           <div className="mt-5">
             <div className="flex items-end justify-between gap-2 mb-3">
               <div>
-                <p className="text-3xl font-bold" style={{ fontFamily: C.fontHeadline, color: C.onPrimaryContainer }}>
+                <p className="text-2xl font-bold" style={{ fontFamily: C.fontHeadline, color: C.onPrimaryContainer }}>
                   {formatCLP(primaryGoal.current_amount_clp)}
                 </p>
                 <p className="text-sm mt-0.5" style={{ color: C.onPrimaryContainer, opacity: 0.7 }}>
@@ -319,7 +315,7 @@ export function GoalsPage() {
             return (
               <div
                 key={g.id}
-                className="p-6"
+                className="p-5 border border-black/5 rounded-2xl"
                 style={{ background: C.surface }}
               >
                 <div className="flex items-start justify-between mb-3">
@@ -337,7 +333,7 @@ export function GoalsPage() {
                 </div>
 
                 <div className="flex items-end gap-2 mb-3">
-                  <span className="text-2xl font-bold" style={{ fontFamily: C.fontHeadline, color: C.onSurface }}>
+                  <span className="text-xl font-bold" style={{ fontFamily: C.fontHeadline, color: C.onSurface }}>
                     {formatCLP(g.current_amount_clp)}
                   </span>
                   <span className="text-sm" style={{ color: C.onSurfaceVariant }}>/ {formatCLP(g.target_amount_clp)}</span>

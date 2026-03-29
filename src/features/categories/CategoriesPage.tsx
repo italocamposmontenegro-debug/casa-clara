@@ -66,7 +66,7 @@ export function CategoriesPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-text">Categorías</h1>
-        {canManageCustomCategories && <Button icon={<Plus className="h-4 w-4" />} onClick={openCreate} size="sm">Nueva</Button>}
+        {canManageCustomCategories && <Button icon={<Plus className="h-4 w-4" />} onClick={openCreate} size="sm">+</Button>}
       </div>
 
       {msg && (
@@ -91,11 +91,11 @@ export function CategoriesPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {categories.map(c => (
-          <Card key={c.id} padding="sm" className="flex items-center justify-between">
+          <Card key={c.id} className="flex items-center justify-between hover:bg-black/[0.02] transition-colors">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">{c.icon}</span>
+              <span className="text-xl opacity-80">{c.icon}</span>
               <div>
-                <p className="font-medium text-text text-sm">{c.name}</p>
+                <p className="font-semibold text-text text-sm tracking-tight">{c.name}</p>
               </div>
             </div>
             {canManageCustomCategories && !c.is_default && (

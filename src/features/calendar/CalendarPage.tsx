@@ -238,7 +238,7 @@ export function CalendarPage() {
     overdue: <AlertTriangle className="h-4 w-4 text-danger" />,
   };
 
-  const getCategoryName = (id: string | null) => categories.find(category => category.id === id)?.name || 'Sin categoría';
+
   const visibleItems = statusFilter === 'pending' || statusFilter === 'overdue'
     ? items.filter((item) => item.status === statusFilter)
     : items;
@@ -250,7 +250,7 @@ export function CalendarPage() {
           <h1 className="text-2xl font-bold text-text">Calendario de pagos</h1>
           <p className="text-sm text-text-muted">{formatMonthYear(year, month)}</p>
         </div>
-        {canManageCalendar && <Button icon={<Plus className="h-4 w-4" />} onClick={openCreateModal} size="sm">Agregar</Button>}
+        {canManageCalendar && <Button icon={<Plus className="h-4 w-4" />} onClick={openCreateModal} size="sm">+</Button>}
       </div>
 
       {!canManageCalendar && (
@@ -304,32 +304,26 @@ export function CalendarPage() {
       ) : (
         <div className="space-y-3">
           {visibleItems.map(item => (
-            <Card key={item.id} padding="sm" className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {statusIcons[item.status]}
-                <div>
-                  <p className="font-medium text-text text-sm">{item.description}</p>
-                  <p className="text-xs text-text-muted">
-                    Vence: {formatDate(item.due_date)} · {getCategoryName(item.category_id)}
-                  </p>
+            <Card key={item.id} className="hover:bg-black/[0.02] transition-colors">
+              <div className="grid grid-cols-[32px_1fr_120px_100px_160px] items-center gap-4 px-4 py-3">
+                <div className="flex justify-center">{statusIcons[item.status]}</div>
+                <div className="min-w-0">
+                  <p className="font-medium text-text text-sm truncate">{item.description}</p>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="font-medium text-text">{formatCLP(item.amount_clp)}</span>
-                {canManageCalendar && (
-                  <Button variant="ghost" size="sm" onClick={() => openEditModal(item)}>Editar</Button>
-                )}
-                {item.status !== 'paid' && canWrite && (
-                  <Button variant="ghost" size="sm" onClick={() => openPayModal(item)}>Marcar pagado</Button>
-                )}
-                {item.status === 'paid' && item.paid_transaction_id && (
-                  <>
-                    <span className="text-xs text-success">Gasto registrado</span>
-                    {canManageCalendar && (
-                      <Button variant="ghost" size="sm" onClick={() => setUndoingItem(item)}>Deshacer pago</Button>
-                    )}
-                  </>
-                )}
+                <div className="text-xs text-text-muted">
+                  {formatDate(item.due_date)}
+                </div>
+                <div className="text-right font-medium text-text text-sm">
+                  {formatCLP(item.amount_clp)}
+                </div>
+                <div className="flex justify-end gap-2">
+                  {item.status !== 'paid' && canWrite ? (
+                    <Button variant="ghost" size="sm" onClick={() => openPayModal(item)}>Pagar</Button>
+                  ) : item.status === 'paid' && (
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-success/70">Pagado</span>
+                  )}
+                  <Button variant="ghost" size="sm" className="opacity-40 hover:opacity-100" onClick={() => openEditModal(item)}>Editar</Button>
+                </div>
               </div>
             </Card>
           ))}

@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, PlanBadge } from '../../components/ui';
-import { APP_NAME, APP_TAGLINE, PUBLIC_PLAN_INFO, type PlanTier } from '../../lib/constants';
+import { APP_NAME, PUBLIC_PLAN_INFO, type PlanTier } from '../../lib/constants';
 import { trackEvent } from '../../lib/analytics';
 import { formatCLP } from '../../utils/format-clp';
 import {
@@ -14,7 +14,6 @@ import {
   Compass,
   Home,
   PiggyBank,
-  Shield,
   Sparkles,
   Target,
   TrendingUp,
@@ -24,104 +23,49 @@ import {
 const PLAN_STAGES: Array<{
   tier: PlanTier;
   eyebrow: string;
-  question: string;
   summary: string;
   bullets: string[];
 }> = [
   {
     tier: 'free',
-    eyebrow: 'Empezar con claridad',
-    question: '¿Cómo empiezo a ordenar mi hogar sin fricción?',
-    summary: 'Da el primer paso con una lectura simple del mes, una meta visible y los movimientos esenciales en un mismo lugar.',
-    bullets: ['Movimientos manuales', '1 meta visible', 'Calendario básico'],
+    eyebrow: 'Inicio',
+    summary: 'Primer paso con lectura del mes y meta visible.',
+    bullets: ['Movimientos manuales', '1 meta', 'Calendario'],
   },
   {
     tier: 'essential',
-    eyebrow: 'Orden cotidiano',
-    question: '¿Cómo mantengo orden y seguimiento real?',
-    summary: 'Ordena el funcionamiento del hogar con categorías propias, reparto, seguimiento real y una base clara para conversar el mes.',
-    bullets: ['Categorías propias', 'Múltiples metas', 'Reparto y cierre simple'],
+    eyebrow: 'Orden',
+    summary: 'Seguimiento real con categorías y reglas de reparto.',
+    bullets: ['Categorías propias', 'Multi-metas', 'Reparto'],
   },
   {
     tier: 'strategic',
-    eyebrow: 'Dirección compartida',
-    question: '¿Cómo tomo decisiones con visión y planificación?',
-    summary: 'Añade anticipación, alertas y análisis para decidir antes de que el mes se desordene y sostener mejor las metas del hogar.',
-    bullets: ['Recurrencias e importación', 'Comparación y proyección', 'Alertas e insights'],
-  },
-];
-
-const COMPARISON_ROWS: Array<{ label: string; free: boolean; essential: boolean; strategic: boolean }> = [
-  { label: 'Lectura básica del hogar', free: true, essential: true, strategic: true },
-  { label: 'Categorías personalizadas', free: false, essential: true, strategic: true },
-  { label: 'Múltiples metas', free: false, essential: true, strategic: true },
-  { label: 'Reparto y quién pagó qué', free: false, essential: true, strategic: true },
-  { label: 'Recurrencias e importación CSV', free: false, essential: false, strategic: true },
-  { label: 'Comparación entre meses', free: false, essential: false, strategic: true },
-  { label: 'Proyección, alertas y recomendaciones', free: false, essential: false, strategic: true },
-];
-
-const PROBLEM_POINTS = [
-  {
-    icon: CircleDollarSign,
-    title: 'Gastos que aparecen tarde',
-    description: 'El mes se desordena cuando cada gasto vive en conversaciones sueltas, memoria o capturas dispersas.',
-  },
-  {
-    icon: Target,
-    title: 'Metas sin seguimiento',
-    description: 'Ahorrar se vuelve difuso cuando el hogar no tiene una referencia clara para medir avances y prioridades.',
-  },
-  {
-    icon: Users,
-    title: 'Acuerdos sin base común',
-    description: 'La fricción crece cuando cada persona mira el hogar desde una versión distinta del mismo mes.',
-  },
-  {
-    icon: Compass,
-    title: 'Decisiones sin dirección',
-    description: 'Sin visibilidad compartida, decidir qué ajustar, qué pagar o qué postergar se vuelve más incierto.',
+    eyebrow: 'Visión',
+    summary: 'Anticipación con proyecciones, alertas y análisis.',
+    bullets: ['Automatización', 'Proyección', 'Alertas'],
   },
 ];
 
 const VALUE_PILLARS = [
   {
     icon: BarChart3,
-    title: 'Ve el mes con una sola lectura',
-    description: 'Ingresos, gastos, metas y vencimientos quedan en una misma referencia, sin planillas ni conversaciones perdidas.',
+    title: 'Lectura única del mes',
+    description: 'Ingresos, gastos y metas en una sola referencia compartida.',
   },
   {
     icon: Users,
-    title: 'Coordina el hogar con menos fricción',
-    description: 'Cada miembro ve el mismo panorama y puede seguir acuerdos, aportes y prioridades desde un mismo espacio.',
+    title: 'Acuerdos sin fricción',
+    description: 'Coordina aportes y prioridades desde un mismo espacio visual.',
   },
   {
     icon: PiggyBank,
-    title: 'Sostén metas con criterio',
-    description: 'Las metas dejan de ser intenciones vagas y pasan a tener avance, contexto y prioridad dentro del mes real.',
+    title: 'Metas con dirección',
+    description: 'Sigue avances reales de ahorro en el contexto de tu mes.',
   },
   {
     icon: TrendingUp,
-    title: 'Decide con más calma',
-    description: 'Cuando el hogar madura, Compás Hogar añade anticipación para que decidir no dependa de urgencias de último minuto.',
-  },
-];
-
-const OUTCOMES = [
-  {
-    icon: Sparkles,
-    title: 'Menos ruido doméstico',
-    description: 'Menos memoria improvisada, menos doble registro y menos conversaciones reactivas sobre lo mismo.',
-  },
-  {
-    icon: Shield,
-    title: 'Más confianza para decidir',
-    description: 'Una lectura clara del hogar da seguridad para priorizar pagos, metas y acuerdos sin rigidez ni drama.',
-  },
-  {
-    icon: Home,
-    title: 'Una vida del hogar mejor conducida',
-    description: 'No se trata solo de registrar gastos. Se trata de darle dirección cotidiana al hogar con una herramienta habitable.',
+    title: 'Decide con anticipación',
+    description: 'Gana visión para ajustar el rumbo antes de que el mes cierre.',
   },
 ];
 
@@ -172,11 +116,11 @@ export function LandingPage() {
               Sistema de claridad compartida
             </div>
             <h1 className="display-heading text-5xl leading-[0.94] text-text lg:text-7xl">
-              Ordena el hogar con más claridad,
-              <span className="mt-2 block text-primary">acuerdos y dirección compartida.</span>
+              Ordena el hogar con claridad y
+              <span className="mt-2 block text-primary">dirección compartida.</span>
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-text-secondary lg:text-xl">
-              {APP_TAGLINE} {APP_NAME} reúne ingresos, gastos, metas y seguimiento del hogar en una experiencia serena, elegante y fácil de compartir.
+              {APP_NAME} reúne ingresos, gastos y metas en una experiencia serena y fácil de compartir.
             </p>
 
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
@@ -256,43 +200,21 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="border-y border-border bg-surface/86 px-8 py-20 lg:px-16">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-10 max-w-3xl">
-            <p className="eyebrow mb-4">La tensión cotidiana</p>
-            <h2 className="display-heading text-4xl text-text">Cuando el hogar depende de la memoria, todo se vuelve más difuso.</h2>
-            <p className="mt-4 text-base leading-7 text-text-muted">
-              Compás Hogar parte de una verdad simple: la fricción doméstica crece cuando el dinero, los pagos y las metas viven repartidos entre memoria, chats y conversaciones sueltas.
-            </p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {PROBLEM_POINTS.map((item) => (
-              <EditorialCard key={item.title} icon={<item.icon className="h-5 w-5" />} title={item.title} description={item.description} />
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="px-8 py-24 lg:px-16">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <p className="eyebrow mb-4">Lo que propone</p>
-              <h2 className="display-heading text-4xl text-text">Un sistema sereno para ordenar la vida cotidiana del hogar.</h2>
-            </div>
-            <p className="max-w-2xl text-sm leading-7 text-text-muted">
-              No es una planilla bonita ni un dashboard financiero genérico. Es una referencia compartida para ver el mes, sostener acuerdos y decidir mejor.
-            </p>
+        <div className="mx-auto max-w-7xl text-center">
+          <div className="mb-16">
+            <p className="eyebrow mb-4 mx-auto">Propuesta</p>
+            <h2 className="display-heading text-4xl text-text">Un sistema sereno para el hogar cotidiana.</h2>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-4">
             {VALUE_PILLARS.map((pillar) => (
-              <div key={pillar.title} className="paper-panel rounded-[1.8rem] p-6">
+              <div key={pillar.title} className="paper-panel rounded-[1.8rem] p-8 text-left">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-bg text-primary">
                   <pillar.icon className="h-5 w-5" />
                 </div>
                 <h3 className="mt-5 text-xl font-semibold text-text">{pillar.title}</h3>
-                <p className="mt-2 text-sm leading-7 text-text-muted">{pillar.description}</p>
+                <p className="mt-2 text-sm leading-6 text-text-muted">{pillar.description}</p>
               </div>
             ))}
           </div>
@@ -303,10 +225,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-12 text-center">
             <p className="eyebrow mx-auto mb-4">Planes</p>
-            <h2 className="display-heading text-4xl text-text">Tres etapas para conducir mejor el hogar</h2>
-            <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-text-muted">
-              Cada plan responde a una etapa distinta. Free te deja empezar sin fricción. Esencial ordena el funcionamiento real del mes. Estratégico añade anticipación y criterio para decidir mejor.
-            </p>
+            <h2 className="display-heading text-4xl text-text">Tres etapas para ordenar el hogar</h2>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
@@ -335,7 +254,6 @@ export function LandingPage() {
                   </div>
 
                   <p className="mt-4 text-sm font-semibold uppercase tracking-[0.08em] text-primary">{plan.promise}</p>
-                  <p className="mt-4 text-sm font-medium text-text">{stage.question}</p>
                   <p className="mt-3 text-sm leading-7 text-text-muted">{stage.summary}</p>
 
                   <ul className="mt-6 space-y-3">
@@ -357,53 +275,13 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-12 text-center">
             <p className="eyebrow mx-auto mb-4">Precios</p>
-            <h2 className="display-heading text-4xl text-text">Elige la etapa correcta para tu hogar</h2>
-            <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-text-muted">
-              La mejor opción para la mayoría es Esencial. Estratégico vale el salto cuando el hogar ya necesita anticiparse, no solo registrar.
-            </p>
+            <h2 className="display-heading text-4xl text-text">Elige tu etapa</h2>
           </div>
           <PricingCards annual={annual} setAnnual={setAnnual} onSelect={(tier) => handlePrimaryCta(`pricing-${tier}`)} />
         </div>
       </section>
 
-      <section className="border-y border-border bg-surface/85 px-8 py-20 lg:px-16">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-10 max-w-3xl">
-            <p className="eyebrow mb-4">Qué cambia en cada etapa</p>
-            <h2 className="display-heading text-4xl text-text">La diferencia entre planes se entiende en segundos.</h2>
-          </div>
-          <div className="overflow-hidden rounded-[2rem] border border-border bg-surface shadow-sm">
-            <div className="grid grid-cols-[1.3fr_repeat(3,minmax(0,1fr))] border-b border-border bg-bg/75 text-sm font-semibold text-text">
-              <div className="px-5 py-4">Capacidad</div>
-              <div className="px-5 py-4 text-center">Free</div>
-              <div className="px-5 py-4 text-center">Esencial</div>
-              <div className="px-5 py-4 text-center">Estratégico</div>
-            </div>
-            {COMPARISON_ROWS.map((row) => (
-              <div key={row.label} className="grid grid-cols-[1.3fr_repeat(3,minmax(0,1fr))] border-b border-border/70 text-sm last:border-b-0">
-                <div className="px-5 py-4 text-text-secondary">{row.label}</div>
-                <ComparisonCell enabled={row.free} />
-                <ComparisonCell enabled={row.essential} />
-                <ComparisonCell enabled={row.strategic} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      <section className="px-8 py-24 lg:px-16">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-10 max-w-3xl">
-            <p className="eyebrow mb-4">Lo que se siente</p>
-            <h2 className="display-heading text-4xl text-text">Más que una app de gastos: una forma más clara de conducir el hogar.</h2>
-          </div>
-          <div className="grid gap-6 lg:grid-cols-3">
-            {OUTCOMES.map((outcome) => (
-              <EditorialCard key={outcome.title} icon={<outcome.icon className="h-5 w-5" />} title={outcome.title} description={outcome.description} />
-            ))}
-          </div>
-        </div>
-      </section>
 
       <section className="border-y border-border bg-surface/85 px-4 py-16 lg:px-6">
         <div className="mx-auto max-w-3xl">
@@ -414,24 +292,24 @@ export function LandingPage() {
           <div className="space-y-3">
             {[
               {
-                q: `¿Puedo usar ${APP_NAME} si todavía no invito a mi pareja?`,
-                a: 'Sí. Puedes crear tu hogar, ordenar el mes y compartir el acceso cuando tenga sentido.',
+                q: `¿Sirve si todavía no invito a mi pareja?`,
+                a: 'Sí. Puedes ordenar el mes y compartir el acceso después.',
               },
               {
-                q: '¿Free sirve de verdad o es solo una demo?',
-                a: 'Free sirve para empezar con una lectura básica del mes, crear una primera meta y formar el hábito de mirar el hogar con claridad.',
+                q: '¿Free es funcional o es una demo?',
+                a: 'Es completamente funcional para el hábito de lectura básica.',
               },
               {
                 q: '¿Cuándo conviene subir a Esencial?',
-                a: 'Cuando el hogar ya necesita categorías propias, más de una meta, reparto manual y seguimiento más real del mes.',
+                a: 'Cuando necesites categorías propias y reglas de reparto.',
               },
               {
                 q: '¿Cuándo vale la pena Estratégico?',
-                a: 'Cuando ya no basta con registrar: el hogar necesita comparar, anticiparse y tomar decisiones con más contexto.',
+                a: 'Cuando el hogar necesite anticiparse con proyecciones y alertas.',
               },
               {
                 q: '¿Puedo cambiar de plan después?',
-                a: 'Sí. Puedes moverte entre Free, Esencial y Estratégico desde la suscripción del hogar.',
+                a: 'Sí, puedes moverte entre planes desde la configuración.',
               },
             ].map((faq) => (
               <FAQItem key={faq.q} question={faq.q} answer={faq.a} />
@@ -443,9 +321,9 @@ export function LandingPage() {
       <section className="px-8 py-24 lg:px-16">
         <div className="mx-auto max-w-5xl rounded-[2.2rem] border border-primary/20 bg-linear-to-br from-primary to-primary-light px-8 py-12 text-center text-white shadow-[0_24px_60px_rgba(23,59,69,0.18)]">
           <p className="text-[11px] uppercase tracking-[0.22em] text-white/70">{APP_NAME}</p>
-          <h2 className="display-heading mt-4 text-4xl text-white">Empieza con claridad. Crece con más criterio cuando el hogar lo pida.</h2>
+          <h2 className="display-heading mt-4 text-4xl text-white">Empieza con claridad.</h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/82">
-            Crea el hogar, ordena el primer mes y deja que la herramienta crezca contigo a medida que el hogar necesite más seguimiento o más visión.
+            Ordena el primer mes y deja que la herramienta crezca con tu hogar.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button size="lg" onClick={() => handlePrimaryCta('closing-cta')} className="!bg-white !text-primary hover:!bg-white/92">
@@ -486,9 +364,9 @@ function PricingCards({
   onSelect: (tier: PlanTier) => void;
 }) {
   const planQuestions: Record<PlanTier, string> = {
-    free: 'Para empezar a ordenar sin fricción.',
-    essential: 'Para darle seguimiento real al funcionamiento cotidiano del hogar.',
-    strategic: 'Para decidir con visión, planificación y criterio.',
+    free: 'Para empezar sin fricción.',
+    essential: 'Para seguimiento cotidiano.',
+    strategic: 'Para decidir con visión.',
   };
 
   return (
@@ -578,48 +456,12 @@ function HeroSignal({
   description: string;
 }) {
   return (
-    <div className="rounded-[2rem] border border-border bg-surface/88 p-8 shadow-xs hover:shadow-ambient transition-all">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-bg text-primary shadow-sm">
+    <div className="rounded-[1.4rem] border border-border bg-white/45 p-5 shadow-xs transition-colors hover:bg-white/60">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-bg text-primary">
         {icon}
       </div>
       <p className="mt-4 text-sm font-semibold text-text">{title}</p>
-      <p className="mt-1 text-sm leading-6 text-text-muted">{description}</p>
-    </div>
-  );
-}
-
-function EditorialCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="paper-panel rounded-[2rem] p-10 lg:p-12 shadow-sm hover:shadow-ambient transition-all">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-bg text-primary">
-        {icon}
-      </div>
-      <h3 className="mt-5 text-lg font-semibold text-text">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-text-muted">{description}</p>
-    </div>
-  );
-}
-
-function ComparisonCell({ enabled }: { enabled: boolean }) {
-  return (
-    <div className="flex items-center justify-center px-5 py-4">
-      {enabled ? (
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-success-bg text-success">
-          <CheckCircle className="h-4 w-4" />
-        </span>
-      ) : (
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-danger-bg text-danger">
-          <Shield className="h-4 w-4 rotate-45" />
-        </span>
-      )}
+      <p className="mt-1 text-xs leading-5 text-text-muted">{description}</p>
     </div>
   );
 }

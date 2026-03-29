@@ -349,7 +349,7 @@ export function SettingsPage() {
         </Card>
 
         <Card>
-          <div className="flex items-center gap-2 mb-4"><Users className="h-5 w-5 text-primary" /><h3 className="font-semibold text-text">Mi perfil</h3></div>
+          <div className="flex items-center gap-2 mb-4"><Users className="h-5 w-5 text-primary" /><h3 className="font-semibold text-text">Nuestro perfil</h3></div>
           <div className="space-y-4">
             <InputField label="Nombre visible" value={displayName} onChange={e => setDisplayName(e.target.value)} />
             <InputField label="Ingreso mensual (CLP)" type="number" value={income} onChange={e => setIncome(e.target.value)} />
@@ -375,8 +375,8 @@ export function SettingsPage() {
             ))}
           </ul>
           {isOwner && !partnerMember && (
-            <p className="mt-4 text-sm text-text-muted">
-              Cuando el nuevo miembro acepte la invitación, podrás editar sus datos o quitar su acceso desde aquí.
+            <p className="mt-4 text-xs text-text-muted">
+              Una vez aceptada la invitación, podrás gestionar sus datos aquí.
             </p>
           )}
         </Card>
@@ -415,18 +415,18 @@ export function SettingsPage() {
               </p>
             ) : (
               <div className="space-y-4">
-                <p className="text-sm text-text-muted">
-                  Genera un enlace para sumar a otra persona al hogar. Luego puedes compartirlo por WhatsApp, email o el medio que prefieras.
+                <p className="text-xs text-text-muted">
+                  Genera un enlace para sumar a otra persona al hogar.
                 </p>
                 <InputField
-                  label="Email del nuevo miembro"
+                  label="Email"
                   type="email"
                   value={inviteEmail}
                   onChange={e => setInviteEmail(e.target.value)}
-                  placeholder="miembro@email.com"
+                  placeholder="ej@email.com"
                 />
                 <Button onClick={createInvitation} loading={inviteLoading}>
-                  Crear invitación
+                  Invitar
                 </Button>
               </div>
             )}

@@ -131,7 +131,7 @@ export function OnboardingPage() {
         }
 
         setInviteLink(`${window.location.origin}/invitacion/${tokenData.token}`);
-        setInviteMessage('Hogar creado. Ya puedes compartir el enlace o entrar al panel para registrar el primer movimiento.');
+        setInviteMessage('Hogar listo. Comparte el enlace para sumar a tu pareja.');
         return;
       }
 
@@ -177,7 +177,7 @@ export function OnboardingPage() {
           {inviteLink ? (
             <div className="space-y-4">
               <p className="text-sm text-text-muted">
-                El hogar ya está listo. Comparte este enlace cuando quieras sumar a tu pareja y luego entra al panel para hacer la primera lectura del mes.
+                Hogar listo. Comparte el enlace para sumar a tu pareja.
               </p>
               <InputField label="Enlace de invitación" value={inviteLink} onChange={() => {}} readOnly />
               <div className="flex flex-col sm:flex-row gap-3">
@@ -199,14 +199,14 @@ export function OnboardingPage() {
             <>
               {step === 0 && (
                 <div className="space-y-4">
-                  <p className="text-sm text-text-muted">Dale un nombre al espacio compartido que vas a ordenar en {APP_NAME}. Ese será el punto de referencia del hogar dentro de la app.</p>
+                  <p className="text-sm text-text-muted">Nombra tu hogar para comenzar el orden compartido.</p>
                   <InputField label="Nombre del hogar" value={householdName} onChange={e => setHouseholdName(e.target.value)} placeholder='Ej: "Hogar Pérez-González"' />
                 </div>
               )}
 
               {step === 1 && (
                 <div className="space-y-4">
-                  <p className="text-sm text-text-muted">Este ingreso nos da el punto de partida para una primera lectura del mes. Podrás ajustarlo más adelante sin problema.</p>
+                  <p className="text-sm text-text-muted">Define el ingreso mensual para la lectura del mes.</p>
                   <InputField label="Ingreso mensual (CLP)" type="number" value={monthlyIncome} onChange={e => setMonthlyIncome(e.target.value)} placeholder="Ej: 1200000" />
                   {monthlyIncome && parseInt(monthlyIncome) > 0 && (
                     <p className="text-xs text-text-muted">= {formatCLP(parseInt(monthlyIncome))}</p>
@@ -216,21 +216,21 @@ export function OnboardingPage() {
 
               {step === 2 && (
                 <div className="space-y-4">
-                  <p className="text-sm text-text-muted">Partimos con una regla simple para que el hogar tenga una referencia compartida desde el primer mes.</p>
+                  <p className="text-sm text-text-muted">Regla base de reparto para el primer mes.</p>
                   <div className="rounded-xl border border-border bg-surface p-4">
                     <p className="font-medium text-text text-sm">{SPLIT_RULE_LABELS[splitRule]}</p>
                     <p className="text-xs text-text-muted mt-1">{SPLIT_RULE_DESCRIPTIONS[splitRule]}</p>
                   </div>
                   <AlertBanner
                     type="info"
-                    message="Las reglas flexibles de reparto se habilitan desde Esencial. Por ahora tu hogar quedará con 50/50."
+                    message="Las reglas flexibles se habilitan desde Esencial. Por ahora tu hogar quedará con 50/50."
                   />
                 </div>
               )}
 
               {step === 3 && (
                 <div className="space-y-4">
-                  <p className="text-sm text-text-muted">Tu primera meta es opcional, pero ayuda a que el hogar parta con una dirección concreta y no solo con números sueltos.</p>
+                  <p className="text-sm text-text-muted">Opcional: Define una meta inicial para el hogar.</p>
                   <InputField label="Nombre de la meta" value={goalName} onChange={e => setGoalName(e.target.value)} placeholder='Ej: "Vacaciones", "Fondo de emergencia"' />
                   <InputField label="Monto objetivo (CLP)" type="number" value={goalAmount} onChange={e => setGoalAmount(e.target.value)} placeholder="Ej: 500000" />
                   <InputField label="Fecha objetivo" type="date" value={goalDate} onChange={e => setGoalDate(e.target.value)} />
@@ -239,7 +239,7 @@ export function OnboardingPage() {
 
               {step === 4 && (
                 <div className="space-y-4">
-                  <p className="text-sm text-text-muted">Si compartes hogar, genera un enlace para que tu pareja se sume a la misma lectura del mes. Si no lo haces ahora, podrás hacerlo después.</p>
+                  <p className="text-sm text-text-muted">Suma a tu pareja para ver el mes con claridad.</p>
                   {!skipInvite ? (
                     <>
                       <InputField label="Email de tu pareja" type="email" value={partnerEmail} onChange={e => setPartnerEmail(e.target.value)} placeholder="pareja@email.com" />
@@ -249,7 +249,7 @@ export function OnboardingPage() {
                     </>
                   ) : (
                     <div className="text-center py-4">
-                      <p className="text-sm text-text-muted mb-2">Podrás invitar a tu pareja más adelante desde Configuración.</p>
+                      <p className="text-sm text-text-muted mb-2">Podrás invitar a tu pareja después desde Configuración.</p>
                       <button onClick={() => setSkipInvite(false)} className="text-xs text-primary cursor-pointer">
                         ← Quiero invitar ahora
                       </button>

@@ -109,7 +109,7 @@ export function InvitationPage() {
             <Home className="h-12 w-12 text-primary mx-auto mb-4" />
             <h2 className="text-xl font-bold text-text mb-2">Invitación lista</h2>
             <p className="text-sm text-text-muted mb-6">
-              Te invitaron a unirte a <strong>{householdName}</strong> con <strong>{invitedEmail}</strong>.
+              Unete a <strong>{householdName}</strong>. Accederás con <strong>{invitedEmail}</strong>.
             </p>
             <Button onClick={acceptInvitation} className="w-full">
               Aceptar invitación
@@ -122,7 +122,7 @@ export function InvitationPage() {
             <Home className="h-12 w-12 text-primary mx-auto mb-4" />
             <h2 className="text-xl font-bold text-text mb-2">Te invitaron a {householdName}</h2>
             <p className="text-sm text-text-muted mb-6">
-              Esta invitación fue enviada a <strong>{invitedEmail}</strong>. Inicia sesión o crea una cuenta con ese mismo correo.
+              Invitación enviada a <strong>{invitedEmail}</strong>. Inicia sesión con este correo.
             </p>
             <div className="space-y-3">
               <Button onClick={() => navigate(`/login?redirect=${encodeURIComponent(`/invitacion/${token}`)}`)} className="w-full">

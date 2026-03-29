@@ -205,10 +205,10 @@ export function DashboardPage() {
             className="text-5xl lg:text-7xl font-bold tracking-tight mb-6"
             style={{ fontFamily: C.fontHeadline, color: C.onSurface, lineHeight: 1.05 }}
           >
-            Resumen del hogar
+            Orden del mes
           </h1>
-          <p className="text-base max-w-2xl mx-auto leading-relaxed opacity-60" style={{ color: C.onSurfaceVariant }}>
-            Una lectura simple del mes para saber qué mirar primero y dónde conviene actuar.
+          <p className="text-[13px] max-w-sm mx-auto leading-relaxed opacity-50" style={{ color: C.onSurfaceVariant }}>
+            Resumen de actividad y estado del mes.
           </p>
         </div>
         <Button size="lg" onClick={() => navigate('/app/movimientos?create=expense')}>
@@ -301,23 +301,23 @@ export function DashboardPage() {
               />
             ) : !hasTransactions ? (
               <M3EmptyState
-                title="Todavía no hay lectura del mes"
-                description="Registra el primer movimiento para que el panel empiece a mostrar contexto útil."
-                actionLabel="Registrar movimiento"
+                title="Sin movimientos"
+                description="Registra el primer ingreso o gasto para ver el resumen del mes."
+                actionLabel="Registrar"
                 onAction={() => navigate('/app/movimientos?create=expense')}
               />
             ) : !primaryGoal ? (
               <M3EmptyState
-                title="El mes ya tiene datos. Falta una dirección."
-                description="Una meta visible ayuda a decidir mejor qué hacer con el margen disponible."
+                title="Sin metas activas"
+                description="Define una dirección para el margen disponible del mes."
                 actionLabel="Crear meta"
                 onAction={() => navigate('/app/metas?create=1')}
               />
             ) : (
               <M3EmptyState
-                title="Hoy no hay nada urgente"
-                description="El hogar está al día. Puedes revisar el resumen o seguir registrando el mes."
-                actionLabel="Ver resumen"
+                title="Al día"
+                description="No hay acciones pendientes. El hogar está bajo control."
+                actionLabel="Ver detalles"
                 onAction={() => navigate('/app/resumen')}
               />
             )}
@@ -430,7 +430,7 @@ export function DashboardPage() {
                   <h2 className="text-lg font-bold mb-4 opacity-70" style={{ color: C.onSurface }}>
                     {primaryGoal.name}
                   </h2>
-                  <span className="text-5xl lg:text-7xl font-bold tracking-tighter block mb-6 px-12" style={{ color: C.primary, fontFamily: C.fontHeadline }}>
+                  <span className="text-2xl lg:text-3xl font-bold tracking-tighter block mb-6 px-12" style={{ color: C.primary, fontFamily: C.fontHeadline }}>
                     {formatCLP(primaryGoal.current_amount_clp)}
                   </span>
                </div>
@@ -450,7 +450,7 @@ export function DashboardPage() {
         ) : (
           <div className="flex flex-col items-start gap-6">
             <p className="text-lg max-w-sm leading-relaxed" style={{ color: C.onSurfaceVariant }}>
-              Una meta simple basta para empezar. No hace falta definir todo el futuro del hogar de una vez.
+              Define una dirección para el margen disponible del mes.
             </p>
             <Button onClick={() => navigate('/app/metas?create=1')}>Crear meta</Button>
           </div>
@@ -483,7 +483,7 @@ export function DashboardPage() {
 function M3Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
     <div
-      className={`rounded-[2rem] p-8 lg:p-10 transition-all hover:shadow-ambient ${className}`}
+      className={`rounded-[2rem] p-10 lg:p-14 transition-all hover:shadow-ambient ${className}`}
       style={{
         background: 'var(--color-s-surface-lowest)',
       }}
@@ -528,7 +528,7 @@ function M3SummaryCard({
           {label}
         </p>
       </div>
-      <p className="text-5xl font-bold tracking-tighter" style={{ color: ts.color, fontFamily: 'var(--font-headline)' }}>
+      <p className="text-2xl font-bold tracking-tighter" style={{ color: ts.color, fontFamily: 'var(--font-headline)' }}>
         {value}
       </p>
       <p className="mt-6 text-[11px] font-medium opacity-60" style={{ color: 'var(--color-s-text-muted)' }}>{note}</p>
@@ -551,7 +551,7 @@ function M3MetricRow({
       className="flex flex-col items-center justify-center gap-2 w-full py-8 rounded-[2rem] text-center transition-all cursor-pointer hover:bg-black/5"
     >
       <span
-        className="text-4xl font-bold tracking-tighter"
+        className="text-2xl font-bold tracking-tighter"
         style={{ color: emphasis ? 'var(--color-s-primary)' : 'var(--color-s-text)', fontFamily: 'var(--font-headline)' }}
       >
         {value}
@@ -577,8 +577,8 @@ function M3ActionRow({
       onClick={onClick}
       className="flex flex-col items-center justify-center gap-3 w-full py-8 rounded-[2rem] text-center transition-all cursor-pointer hover:bg-black/5"
     >
-      <span className="text-xl font-bold tracking-tight text-right mt-1" style={{ color: valueColor }}>{value}</span>
-      <span className="text-lg font-bold tracking-tight" style={{ color: 'var(--color-s-text)' }}>{label}</span>
+      <span className="text-base font-bold tracking-tight text-right mt-1" style={{ color: valueColor }}>{value}</span>
+      <span className="text-sm font-bold tracking-tight" style={{ color: 'var(--color-s-text)' }}>{label}</span>
       <span className="text-[11px] font-medium opacity-50 uppercase tracking-wider" style={{ color: 'var(--color-s-text-muted)' }}>{detail}</span>
     </button>
   );
